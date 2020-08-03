@@ -4,6 +4,7 @@ scalaSource in Compile := baseDirectory.value / "src"
 enablePlugins(GraalVMNativeImagePlugin)
 graalVMNativeImageOptions ++= Seq(
         "--initialize-at-build-time",
+        "-Ycheck-init"
     )
 
 lazy val root = project
