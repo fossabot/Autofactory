@@ -4,7 +4,7 @@ scalaSource in Compile := baseDirectory.value / "src"
 enablePlugins(GraalVMNativeImagePlugin)
 graalVMNativeImageOptions ++= Seq(
         "--initialize-at-build-time",
-        "-Ycheck-init"
+        "-H:CCompilerOption=\"-I/home/rouli-freeman/Documents/NE\""
     )
 
 lazy val root = project
@@ -13,7 +13,8 @@ lazy val root = project
         name := "NE",
         version := "1.0.0",
         scalaVersion := dottyVersion,
-        scalacOptions += "-Yexplicit-nulls"
+        scalacOptions ++= Seq("-Yexplicit-nulls", "-Ycheck-init")
     )
 addCommandAlias("native-image", "graalvm-native-image:packageBin")
 javaHome := Some(file("~/graal"))
+Global / onChangedBuildSource := ReloadOnSourceChanges
