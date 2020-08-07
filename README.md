@@ -93,3 +93,33 @@ One difficulty is that GraalVM does not function well with C++ code it seems; it
 We can just use the rust bindings (https://github.com/EmbarkStudios/physx-rs/tree/main/physx-sys) as these have a good C api instead. It may also be nice if I could auto-generate the Scala bindings as well. This link (https://github.com/EmbarkStudios/physx-rs/blob/main/physx-sys/src/generated/x86_64-unknown-linux/structgen_out.hpp) has a giant list of structs which can be parsed easily to generate Scala types.
 
 The program could just be written in Rust instead, that would simplify quite a lot of these difficulties, although Rust is very annoying as it's type system can't be exploited in the ways I want.
+
+---
+
+It turns out that there are issues with all of the languages.
+
+#### Scala
+
+Scala has many advantages. It has a good type system, and is decently efficient. It has a couple of disadvantages though:
+
+* Interoperability with C++ is annoying (JNI).
+* Scala is difficult to make UIs in.
+* There is no JavaFX & OpenGL merged library; it seems that it is possible to have either one, but not both.
+
+#### Rust
+
+The advantage of rust is that it has good interoperability with C++ (especially PhysX, see physx-rs). It is also a new language which seems to be very interesting. There are also OpenGL bindings, but there seems to be no UI package. The primary issues with rust is that
+
+* It's compiler is Lawful Evil
+* no UI package.
+
+#### JavaScript
+
+JavaScript seems to be the best language for the task. Despite having poor performance, the WebGL rendering should not be too difficult due to each block not having too much complexity. Unfortunately, there will be a lot of blocks that will be drawn. One interesting example is this website (https://alteredqualia.com/three/examples/webgl_cubes.html) which has 150000 cubes. JavaScript ( with HTML & CSS) is very good for making UIs. It seems that WebGPU is actually a more efficient alternative instead of WebGL as it provides more control, although it doesn't seem to be implemented in Electron yet. This website seems to have a nice WebGL rendering of various games (https://noclip.website). Disadvantages:
+
+* Poor performance
+* No operator overloading / type system
+
+One way to solve poor performance is to delegate all the tasks to C++ code (such as the stress on collision and gunfire) and have the JavaScript only do rendering. It seems like it takes a lot of trickery to get efficient WebGL code.
+
+Another alternative is to use Scala.js as it also provides the operator overloading and types. Unfortunately, it does not seem that Scala.js works with Dotty.

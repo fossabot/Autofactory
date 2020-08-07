@@ -69,4 +69,4 @@ $$w = \frac{a + b + c - 1}{2}$$
 
 ## Optimization
 
-If the cube's corners are all the same, no interpolation is necessary.
+If the cube's corners are all the same, no interpolation is necessary, and the path of the particle is simply a straight line.
