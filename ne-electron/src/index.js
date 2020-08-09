@@ -32,9 +32,8 @@ function createWindow() {
     });
     win.once('ready-to-show', win.show);
 }
-app.on('ready', () => {
-    setTimeout(createWindow, 1000);
-});
+
+app.on('ready', createWindow);
 app.on('window-all-closed', () => {
     app.quit();
     process.exit(0);

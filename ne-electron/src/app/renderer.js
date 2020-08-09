@@ -42,10 +42,10 @@ onmessage = (startupMessage) => {
         scene.add(new THREE.AmbientLight(0xffffff));
     }
 
-    let time = Date.now();
+    let time = performance.now();
 
     (function render() {
-        const now = Date.now();
+        const now = performance.now();
         const dt = now - time;
         time = now;
 
