@@ -1,12 +1,18 @@
 import * as THREE from '../../node_modules/three/build/three.module.js';
-//import { EffectComposer } from '../../node_modules/three/examples/jsm/postprocessing/EffectComposer';
-//import { RenderPass } from '../../node_modules/three/examples/jsm/postprocessing/RenderPass';
+import { EffectComposer } from '../../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from '../../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from '../../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
+import { CopyShader } from '../../node_modules/three/examples/jsm/shaders/CopyShader.js';
+
+const msaa = false;
+
 onmessage = (startupMessage) => {
     const { canvas, canvasData } = startupMessage.data;
     console.log(canvas);
     Object.assign(canvas, canvasData);
     const context = canvas.getContext('webgl2', {
         powerPreference: 'high-performance',
+        antialias: false,
     });
     const renderer = new THREE.WebGLRenderer({ canvas, context });
     console.log(renderer);
@@ -26,11 +32,14 @@ onmessage = (startupMessage) => {
         camera.zoom = fov / 75;
     }
 
-    //const target = new THREE.WebGLMultisampleRenderTarget(canvas.width, canvas.height);
-    //target.samples = 8;
+    const target = new (msaa ? THREE.WebGLMultisampleRenderTarget : THREE.WebGLRenderTarget)(
+        canvas.width,
+        canvas.height
+    );
 
-    //const composer = new EffectComposer(renderer, target);
-    //composer.addPass(new RenderPass(scene, camera));
+    const composer = new EffectComposer(renderer, target);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new ShaderPass(CopyShader));
 
     let cube;
     {
@@ -64,8 +73,7 @@ onmessage = (startupMessage) => {
         cube.rotation.x += dt * speed;
         cube.rotation.y += dt * speed;
 
-        renderer.render(scene, camera);
-        // console.log('Rendering');
+        composer.render();
         requestAnimationFrame(render);
     })();
 
@@ -76,26 +84,10 @@ onmessage = (startupMessage) => {
                 console.log(msg);
                 Object.assign(canvas, msg);
                 renderer.setSize(msg.width, msg.height, false);
-                //target.setSize(msg.width, msg.height);
+                target.setSize(msg.width, msg.height);
                 camera.aspect = canvas.width / canvas.height;
                 camera.updateProjectionMatrix();
                 break;
         }
     };
 };
-
-
-/*
- __         _           _____
-|  \       | |       _-/_____\-_
-|   \      | |      / -/     \- \
-| |\ \     | |     / /         \ \
-| | \ \    | |    |/             \|
-| |  \ \   | |    ||             ||
-| |   \ \  | |    ||             ||
-| |    \ \ | |    |\             /|
-| |     \ \| |     \ \         / /
-| |      \   |      \_-\_____/-_/
-|_|       \__|        -\_____/-
-
-*/
