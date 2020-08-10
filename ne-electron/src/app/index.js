@@ -1,20 +1,17 @@
+import { createModuleWorker } from './utils.js';
+
 const canvas = document.getElementById('canvas');
 const offscreen = canvas.transferControlToOffscreen();
-const worker = new Worker('renderer.js');
+const worker = createModuleWorker('./renderer.js');
 
 function computeResizePacket(override = false) {
-    const pixelRatio = devicePixelRatio;
-    const width = (canvas.clientWidth * pixelRatio) | 0;
-    const height = (canvas.clientHeight * pixelRatio) | 0;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
     const needResize = canvas.width !== width || canvas.height !== height;
     if (needResize || override) {
         return {
             width,
             height,
-            clientWidth: canvas.clientWidth,
-            clientHeight: canvas.clientHeight,
-            pixelWidth: canvas.width,
-            pixelHeight: canvas.height,
         };
     }
     return null;

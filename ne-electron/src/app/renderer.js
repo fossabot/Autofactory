@@ -1,11 +1,15 @@
+import * as THREE from '../../node_modules/three/build/three.module.js';
+//import { EffectComposer } from '../../node_modules/three/examples/jsm/postprocessing/EffectComposer';
+//import { RenderPass } from '../../node_modules/three/examples/jsm/postprocessing/RenderPass';
 onmessage = (startupMessage) => {
     const { canvas, canvasData } = startupMessage.data;
+    console.log(canvas);
     Object.assign(canvas, canvasData);
-    const THREE = require('three');
     const context = canvas.getContext('webgl2', {
         powerPreference: 'high-performance',
     });
     const renderer = new THREE.WebGLRenderer({ canvas, context });
+    console.log(renderer);
 
     let camera;
 
@@ -21,6 +25,12 @@ onmessage = (startupMessage) => {
         camera.position.z = 2;
         camera.zoom = fov / 75;
     }
+
+    //const target = new THREE.WebGLMultisampleRenderTarget(canvas.width, canvas.height);
+    //target.samples = 8;
+
+    //const composer = new EffectComposer(renderer, target);
+    //composer.addPass(new RenderPass(scene, camera));
 
     let cube;
     {
@@ -55,7 +65,7 @@ onmessage = (startupMessage) => {
         cube.rotation.y += dt * speed;
 
         renderer.render(scene, camera);
-        console.log('Rendering');
+        // console.log('Rendering');
         requestAnimationFrame(render);
     })();
 
@@ -63,11 +73,29 @@ onmessage = (startupMessage) => {
         const msg = message.data[1];
         switch (message.data[0]) {
             case 'canvas-resize':
+                console.log(msg);
                 Object.assign(canvas, msg);
                 renderer.setSize(msg.width, msg.height, false);
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                //target.setSize(msg.width, msg.height);
+                camera.aspect = canvas.width / canvas.height;
                 camera.updateProjectionMatrix();
                 break;
         }
     };
 };
+
+
+/*
+ __         _           _____
+|  \       | |       _-/_____\-_
+|   \      | |      / -/     \- \
+| |\ \     | |     / /         \ \
+| | \ \    | |    |/             \|
+| |  \ \   | |    ||             ||
+| |   \ \  | |    ||             ||
+| |    \ \ | |    |\             /|
+| |     \ \| |     \ \         / /
+| |      \   |      \_-\_____/-_/
+|_|       \__|        -\_____/-
+
+*/

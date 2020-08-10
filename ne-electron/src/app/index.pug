@@ -1,8 +1,8 @@
 doctype html
 html
     head
-        script.
-            window.onload = () => { require('./index.js'); };
+        script(type="module").
+            window.onload = () => { import('./index.js'); };
         link(rel="stylesheet" href="index.css")
     body
         canvas#canvas
