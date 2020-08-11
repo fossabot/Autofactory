@@ -6,22 +6,32 @@ import { CopyShader } from '../../node_modules/three/examples/jsm/shaders/CopySh
 
 const msaa = false;
 
-onmessage = (startupMessage) => {
+function loadImage(url) {
+    return new Promise((resolve) => {
+        postMessage(['load-image', url]);
+        onmessage = (message) => {
+            const msg = message.data;
+            if (msg[0] != 'load-image') throw new Error('Invalid Message');
+            msg[1].data = new Uint8ClampedArray(msg[1].data);
+            resolve(msg[1]);
+        };
+    });
+}
+
+onmessage = async (startupMessage) => {
+    onmessage = () => {};
     const { canvas, canvasData } = startupMessage.data;
-    console.log(canvas);
     Object.assign(canvas, canvasData);
     const context = canvas.getContext('webgl2', {
         powerPreference: 'high-performance',
         antialias: false,
     });
     const renderer = new THREE.WebGLRenderer({ canvas, context });
-    console.log(renderer);
-
-    let camera;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x050505);
 
+    let camera;
     {
         const fov = 75;
         const aspect = canvas.width / canvas.height;
@@ -43,11 +53,14 @@ onmessage = (startupMessage) => {
 
     let cube;
     {
+        const image = await loadImage('cubeTexture.png');
+        console.log(image);
+        const cubeTexture = new THREE.DataTexture(image.data, image.width, image.height, THREE.RGBAFormat);
         const boxWidth = 1;
         const boxHeight = 1;
         const boxDepth = 1;
-        const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-        const material = new THREE.MeshPhongMaterial({ color: 0x304030 });
+        const geometry = new THREE.BoxBufferGeometry(boxWidth, boxHeight, boxDepth);
+        const material = new THREE.MeshPhongMaterial({ color: 0x304030, map: cubeTexture });
         cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
     }
@@ -77,6 +90,7 @@ onmessage = (startupMessage) => {
         requestAnimationFrame(render);
     })();
 
+    postMessage(['ready']);
     onmessage = (message) => {
         const msg = message.data[1];
         switch (message.data[0]) {
