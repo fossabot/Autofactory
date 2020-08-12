@@ -1,3 +1,9 @@
+# Native Stuff
+
+native/target
+native/index.node
+native/artifacts.json
+
 # Logs
 logs
 *.log

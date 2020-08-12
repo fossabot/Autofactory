@@ -25,7 +25,6 @@ function computeResizePacket(override = false) {
 }
 
 worker.postMessage({ canvas: offscreen, canvasData: computeResizePacket(true) }, [offscreen]);
-console.log('Test');
 worker.onmessage = (message) => {
     const msg = message.data;
     switch (msg[0]) {
@@ -52,3 +51,5 @@ worker.onmessage = (message) => {
             })();
     }
 };
+
+console.log(require('../../native'));

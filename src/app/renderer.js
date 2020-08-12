@@ -59,7 +59,7 @@ onmessage = async (startupMessage) => {
         const boxHeight = 1;
         const boxDepth = 1;
         const geometry = new THREE.BoxBufferGeometry(boxWidth, boxHeight, boxDepth);
-        const material = new THREE.MeshPhongMaterial({ color: 0x304030, map: cubeTexture });
+        const material = new THREE.MeshPhongMaterial({ map: cubeTexture });
         cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
     }

@@ -3,10 +3,12 @@
     "version": "1.0.0",
     "description": "",
     "scripts": {
+        "install": "npm run build-native --release",
         "build": "gulp",
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "electron out",
-        "clean": "rm -r out/* && npm run build"
+        "clean": "rm -r out/* && npm run build",
+        "build-native": "electron-build-env neon build"
     },
     "author": "iMplode nZ",
     "license": "UNLICENCED",
@@ -17,6 +19,7 @@
     },
     "devDependencies": {
         "@prettier/plugin-pug": "^1.5.0",
+        "electron-build-env": "^0.2.0",
         "eslint": "^7.6.0",
         "eslint-config-prettier": "^6.11.0",
         "eslint-plugin-prettier": "^3.1.4",
@@ -24,6 +27,7 @@
         "gulp-pug": "^4.0.1",
         "gulp-sourcemaps": "^2.6.5",
         "gulp-stylus": "^2.7.0",
+        "neon-cli": "^0.4.0",
         "prettier": "^2.0.5",
         "pug": "^3.0.0",
         "stylus": "^0.54.8"
