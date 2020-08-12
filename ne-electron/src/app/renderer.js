@@ -53,8 +53,7 @@ onmessage = async (startupMessage) => {
 
     let cube;
     {
-        const image = await loadImage('cubeTexture.png');
-        console.log(image);
+        const image = await loadImage('textures/cubeTexture.png');
         const cubeTexture = new THREE.DataTexture(image.data, image.width, image.height, THREE.RGBAFormat);
         const boxWidth = 1;
         const boxHeight = 1;
@@ -71,7 +70,7 @@ onmessage = async (startupMessage) => {
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(-1, 2, 4);
         scene.add(light);
-        scene.add(new THREE.AmbientLight(0xffffff));
+        scene.add(new THREE.AmbientLight(0xfffff));
     }
 
     let time = performance.now();
@@ -95,7 +94,6 @@ onmessage = async (startupMessage) => {
         const msg = message.data[1];
         switch (message.data[0]) {
             case 'canvas-resize':
-                console.log(msg);
                 Object.assign(canvas, msg);
                 renderer.setSize(msg.width, msg.height, false);
                 target.setSize(msg.width, msg.height);
