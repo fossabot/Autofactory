@@ -53,7 +53,7 @@ onmessage = async (startupMessage) => {
 
     let cube;
     {
-        const image = await loadImage('textures/cubeTexture.png');
+        const image = await loadImage('textures/cubeTexture2.png');
         const cubeTexture = new THREE.DataTexture(image.data, image.width, image.height, THREE.RGBAFormat);
         const boxWidth = 1;
         const boxHeight = 1;
