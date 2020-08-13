@@ -86,6 +86,7 @@ onmessage = async (startupMessage) => {
         cube.rotation.y += dt * speed;
 
         composer.render();
+        postMessage(['tick']);
         requestAnimationFrame(render);
     })();
 

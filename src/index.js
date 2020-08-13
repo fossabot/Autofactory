@@ -1,5 +1,8 @@
 import { createModuleWorker } from './utils.js';
 
+const stats = new require('stats.js')();
+stats.showPanel(0);
+document.body.appendChild(stats.dom);
 const ctx = document.getElementById('imageLoadCanvas').getContext('2d');
 {
     const canvas = document.getElementById('imageLoadCanvas');
@@ -49,5 +52,8 @@ worker.onmessage = (message) => {
                 if (packet != null) worker.postMessage(['canvas-resize', packet]);
                 requestAnimationFrame(poll);
             })();
+            break;
+        case 'tick':
+            stats.update();
     }
 };
