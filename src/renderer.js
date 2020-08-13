@@ -1,8 +1,8 @@
-import * as THREE from '../../node_modules/three/build/three.module.js';
-import { EffectComposer } from '../../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from '../../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from '../../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
-import { CopyShader } from '../../node_modules/three/examples/jsm/shaders/CopyShader.js';
+import * as THREE from '../node_modules/three/build/three.module.js';
+import { EffectComposer } from '../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from '../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from '../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
+import { CopyShader } from '../node_modules/three/examples/jsm/shaders/CopyShader.js';
 
 const msaa = false;
 

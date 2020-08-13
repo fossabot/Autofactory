@@ -4,11 +4,10 @@
     "description": "",
     "scripts": {
         "install": "npm run build-native --release",
-        "build": "gulp",
+        "build": "gulp && electron-build-env neon build",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "electron out",
-        "clean": "rm -r out/* && npm run build",
-        "build-native": "electron-build-env neon build"
+        "start": "electron .",
+        "clean": "rm -r out/* && rm -r native/target && rm -r native/index.node"
     },
     "author": "iMplode nZ",
     "license": "UNLICENCED",
