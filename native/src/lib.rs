@@ -1,6 +1,4 @@
-
 use neon::prelude::*;
-
 
 extern crate static_assertions;
 
@@ -19,7 +17,7 @@ pub mod blocks {
         Forwards,
         Backwards,
         Left,
-        Right
+        Right,
     }
 
     pub trait BlockType<T> {
@@ -28,13 +26,14 @@ pub mod blocks {
 
     pub struct Block<T> {
         pub block_type: Rc<dyn BlockType<T>>,
-        pub data: BlockData
+        pub data: BlockData,
     }
 
     impl<T> Block<T> {
         pub fn get_rotation(&self) -> Rotation {
             unsafe {
-                self.block_type.get_rotation(std::mem::transmute::<&BlockData, &T>(&self.data))
+                self.block_type
+                    .get_rotation(std::mem::transmute::<&BlockData, &T>(&self.data))
             }
         }
 
@@ -43,19 +42,22 @@ pub mod blocks {
                 let data = *std::mem::transmute::<&T, &BlockData>(&data);
                 Block::<T> {
                     block_type: block_type,
-                    data
+                    data,
                 }
             }
         }
     }
-
 }
 
 pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     let global = cx.global().downcast::<JsObject>().or_throw(cx).unwrap();
     let handle_console = global.get(cx, "console").unwrap();
     let console = handle_console.downcast::<JsObject>().or_throw(cx).unwrap();
-    let log = console.get(cx, "log").unwrap().downcast::<JsFunction>().unwrap();
+    let log = console
+        .get(cx, "log")
+        .unwrap()
+        .downcast::<JsFunction>()
+        .unwrap();
     let s = cx.string(str);
     log.call(cx, handle_console, vec![s]).unwrap();
 }
@@ -129,7 +131,9 @@ fn hello(mut cx: FunctionContext) -> JsResult<JsNull> {
                     .enumerate()
                     .map(|(_t, p)| if h == *p { 'o' } else { ' ' })
                     .collect::<String>()
-            }).map(|str| str + "\n").collect::<String>();
+            })
+            .map(|str| str + "\n")
+            .collect::<String>();
         log(&mut cx, &s[..]);
         PxScene_release_mut(scene);
         PxDefaultCpuDispatcher_release_mut(dispatcher);

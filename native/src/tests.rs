@@ -1,7 +1,7 @@
 mod tests {
     use crate::blocks::*;
     struct ExampleBlockData {
-        r: Rotation
+        r: Rotation,
     }
     struct ExampleBlockType;
     impl BlockType<ExampleBlockData> for ExampleBlockType {
@@ -10,7 +10,5 @@ mod tests {
         }
     }
     #[test]
-    fn create_block_and_get_rotation() {
-
-    }
+    fn create_block_and_get_rotation() {}
 }
