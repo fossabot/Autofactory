@@ -1,5 +1,9 @@
 mod tests {
+    use std::mem::size_of;
     use crate::blocks::*;
+    use std::rc::Rc;
+
+    #[derive(Copy, Clone)]
     struct ExampleBlockData {
         r: Rotation,
     }
@@ -9,6 +13,18 @@ mod tests {
             data.r
         }
     }
+
     #[test]
-    fn create_block_and_get_rotation() {}
+    fn size_fits() {
+        println!("{}", size_of::<Block<BlockData>>());
+        assert!(size_of::<ExampleBlockData>() < size_of::<BlockData>())
+    }
+
+    #[test]
+    fn create_block_and_get_rotation() {
+        let r = Rotation::Up;
+        let data = ExampleBlockData { r };
+        let block = Block::new(Rc::new(ExampleBlockType), data);
+        assert_eq!(block.get_rotation(), ExampleBlockType.get_rotation(&data));
+    }
 }
