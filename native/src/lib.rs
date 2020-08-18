@@ -1,53 +1,9 @@
 use neon::prelude::*;
 
-extern crate static_assertions;
-
 use physx_sys::*;
 use std::ptr::null_mut;
-
-pub mod blocks {
-
-    use std::rc::Rc;
-
-    pub type BlockData = [u8; 32];
-    #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-    pub enum Rotation {
-        Up,
-        Down,
-        Forwards,
-        Backwards,
-        Left,
-        Right,
-    }
-
-    pub trait BlockType<T> {
-        fn get_rotation(&self, data: &T) -> Rotation;
-    }
-
-    pub struct Block<T> {
-        pub block_type: Rc<dyn BlockType<T>>,
-        pub data: BlockData,
-    }
-
-    impl<T> Block<T> {
-        pub fn get_rotation(&self) -> Rotation {
-            unsafe {
-                self.block_type
-                    .get_rotation(std::mem::transmute::<&BlockData, &T>(&self.data))
-            }
-        }
-
-        pub fn new(block_type: Rc<dyn BlockType<T>>, data: T) -> Block<T> {
-            unsafe {
-                let data = *std::mem::transmute::<&T, &BlockData>(&data);
-                Block::<T> {
-                    block_type: block_type,
-                    data,
-                }
-            }
-        }
-    }
-}
+pub mod blocks;
+mod utils;
 
 pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     let global = cx.global().downcast::<JsObject>().or_throw(cx).unwrap();
