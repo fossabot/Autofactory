@@ -2,6 +2,7 @@ mod tests {
     use std::mem::size_of;
     use crate::blocks::*;
     use std::rc::Rc;
+    use static_assertions::const_assert;
 
     #[derive(Copy, Clone)]
     struct ExampleBlockData {
@@ -16,8 +17,7 @@ mod tests {
 
     #[test]
     fn size_fits() {
-        println!("{}", size_of::<Block<BlockData>>());
-        assert!(size_of::<ExampleBlockData>() < size_of::<BlockData>())
+        const_assert!(size_of::<ExampleBlockData>() <= size_of::<BlockData>());
     }
 
     #[test]

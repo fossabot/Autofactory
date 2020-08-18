@@ -10,7 +10,7 @@ pub mod blocks {
     use std::rc::Rc;
 
     pub type BlockData = [u8; 32];
-    #[derive(Copy, Clone, PartialEq, Eq, std::fmt::Debug)]
+    #[derive(Copy, Clone, PartialEq, Eq, Debug)]
     pub enum Rotation {
         Up,
         Down,
