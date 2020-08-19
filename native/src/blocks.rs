@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::make_array;
+use array_macro::array;
 
 pub type BlockData = [u8; 32];
 
@@ -103,29 +103,16 @@ impl BlockStorage for ChunkBlockStorage {
                         BlockCoords::new(x.0 as i64, x.1 as i64, x.2 as i64),
                         x.3.clone(),
                     )
-                }), //.filter(|x| Rc::as_ptr(&x.1.block_type) != Rc::as_ptr(&Block::cast_type(Rc::new(AirBlockType))))
+                })
+                .filter(|x| {
+                    Rc::ptr_eq(&x.1.block_type, &Block::cast_type(Rc::new(AirBlockType)))
+                }),
         )
     }
 
     fn new() -> Self {
-        unsafe {
-            println!("First!");
-            println!(
-                "{:?}",
-                Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData))
-            );
-            let first = |_| Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData));
-            println!("Second!");
-            let second = |_| make_array!(CHUNK_SIZE, first);
-            println!("{:?}", second(0));
-            println!("Third!");
-            let third = |_| make_array!(CHUNK_SIZE, second);
-            println!("Boom?");
-            let a = ChunkBlockStorage {
-                blocks: make_array!(CHUNK_SIZE, third),
-            };
-            println!("Boom.");
-            a
+        ChunkBlockStorage {
+            blocks: array![array![array![Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
         }
     }
 }
