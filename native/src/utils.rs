@@ -11,7 +11,7 @@ macro_rules! make_array {
             println!("Place: {:#018x}", place as *const _ as u64);
             let called = $constructor(i);
             println!("If this prints then I'm not stupid.");
-            if false { *place = called };
+            *place = called;
             println!("?!??!?!!?!?");
         }
         items

@@ -24,17 +24,19 @@ fn print_chunk() {
     //chunk.iter().for_each(|x| println!("{:?}", x));
 
     unsafe {
-        let items: [&Vec<u8>; 2] = std::mem::MaybeUninit::zeroed().assume_init();
+        //let items: [&Vec<u8>; 2] = std::mem::MaybeUninit::zeroed().assume_init();
         // println!("{:?}", items);
-        println!("Line 29: {:#018x}", &items as *const _ as u64);
-        println!("Line 30: {:#018x}", &items[0] as *const _ as u64);
-        let block = Block::cast(Block::new(
-            Rc::new(AirBlockType),
-            AirBlockData
-        ));
-        println!("{:?}", block);
-        make_array!(2, |_| block.clone());
+        //println!("Line 29: {:#018x}", &items as *const _ as u64);
+        //println!("Line 30: {:#018x}", &items[0] as *const _ as u64);
+        //let block = Block::cast(Block::new(
+        //    Rc::new(AirBlockType),
+        //    AirBlockData
+        //));
+        //println!("{:?}", block);
+        //make_array!(2, |_| block.clone());
         // .iter()
         // .for_each(|x| println!("{:?}", x));
+        let items: [[u8; 48]; 2] = std::mem::MaybeUninit::zeroed().assume_init();
+
     }
 }
