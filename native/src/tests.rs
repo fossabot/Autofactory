@@ -1,28 +1,40 @@
+use crate::blocks::airblock::*;
 use crate::blocks::*;
-use static_assertions::const_assert;
-use std::mem::size_of;
+use crate::make_array;
 use std::rc::Rc;
 
-#[derive(Copy, Clone)]
-struct ExampleBlockData {
-    r: Rotation,
+//#[test]
+fn print_vertices() {
+    let _block = Block::new(
+        Rc::new(exampleblock::ExampleBlockType),
+        exampleblock::ExampleBlockData,
+    );
+    //println!("{:#?}", block.get_vertices());
 }
-struct ExampleBlockType;
-impl BlockType<ExampleBlockData> for ExampleBlockType {
-    fn get_rotation(&self, data: &ExampleBlockData) -> Rotation {
-        data.r
+
+//#[test]
+fn pointer_magic() {
+    let x = 3;
+    println!("{:#018x}", &x as *const i32 as u64);
+}
+
+#[test]
+fn print_chunk() {
+    //let chunk = ChunkBlockStorage::new();
+    //chunk.iter().for_each(|x| println!("{:?}", x));
+
+    unsafe {
+        let items: [&Vec<u8>; 2] = std::mem::MaybeUninit::zeroed().assume_init();
+        // println!("{:?}", items);
+        println!("Line 29: {:#018x}", &items as *const _ as u64);
+        println!("Line 30: {:#018x}", &items[0] as *const _ as u64);
+        let block = Block::cast(Block::new(
+            Rc::new(AirBlockType),
+            AirBlockData
+        ));
+        println!("{:?}", block);
+        make_array!(2, |_| block.clone());
+        // .iter()
+        // .for_each(|x| println!("{:?}", x));
     }
-}
-
-#[test]
-fn size_fits() {
-    const_assert!(size_of::<ExampleBlockData>() <= size_of::<BlockData>());
-}
-
-#[test]
-fn create_block_and_get_rotation() {
-    let r = Rotation::Up;
-    let data = ExampleBlockData { r };
-    let block = Block::new(Rc::new(ExampleBlockType), data);
-    assert_eq!(block.get_rotation(), ExampleBlockType.get_rotation(&data));
 }

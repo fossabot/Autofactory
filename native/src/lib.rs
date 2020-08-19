@@ -105,20 +105,3 @@ register_module!(mut cx, {
 
 #[cfg(test)]
 mod tests;
-
-/*
-
-========Block========
-+-------------------+
-|  Pointer (Type)   | ---> [Implementation of standard Block functions for this Type]
-+-------------------+
-|                   |
-|                   |
-|                   |
-|     Untyped       |
-|      Data         |
-|   (BlockData)     |
-|                   |
-|                   |
-+-------------------+
-*/
