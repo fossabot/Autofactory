@@ -1,6 +1,6 @@
 use crate::blocks::*;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct AirBlockType;
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct AirBlockData;

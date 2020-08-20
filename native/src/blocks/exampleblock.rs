@@ -1,6 +1,6 @@
 use crate::blocks::*;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct ExampleBlockType;
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct ExampleBlockData;

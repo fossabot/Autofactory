@@ -31,7 +31,6 @@ pub fn write_buffer(mut cx: FunctionContext) -> JsResult<JsBuffer> {
 
 pub fn example_chunk_vertices(mut cx: FunctionContext) -> JsResult<JsBuffer> {
     let message = utils::generate_random_chunk().get_vertices();
-    println!("{}", message.len());
     let mut buf = cx.buffer(message.len() as u32 * std::mem::size_of::<blocks::Vertex>() as u32)?;
 
     cx.borrow_mut(&mut buf, |data| unsafe {
@@ -118,5 +117,3 @@ register_module!(mut cx, {
 
 #[cfg(test)]
 mod tests;
-#[cfg(test)]
-mod segfault;

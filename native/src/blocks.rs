@@ -1,3 +1,4 @@
+use core::iter::*;
 use std::rc::Rc;
 
 use array_macro::array;
@@ -85,6 +86,24 @@ pub struct ChunkBlockStorage {
 
 use airblock::*;
 
+impl IntoIterator for ChunkBlockStorage {
+    type Item = (BlockCoords, Block<BlockData>);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> <Self as std::iter::IntoIterator>::IntoIter { self.blocks
+                .iter()
+                .enumerate()
+                .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
+                .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
+                .map(|x| {
+                    (
+                        BlockCoords::new(x.0 as i64, x.1 as i64, x.2 as i64),
+                        x.3.clone(),
+                    )
+                })
+                .collect::<Vec<Self::Item>>().into_iter()
+    }
+}
+
 impl BlockStorage for ChunkBlockStorage {
     fn get_block(&self, coords: BlockCoords) -> &Block<BlockData> {
         &self.blocks[coords.x as usize][coords.y as usize][coords.z as usize]
@@ -104,9 +123,6 @@ impl BlockStorage for ChunkBlockStorage {
                         BlockCoords::new(x.0 as i64, x.1 as i64, x.2 as i64),
                         x.3.clone(),
                     )
-                })
-                .filter(|x| {
-                    Rc::ptr_eq(&x.1.block_type, &Block::cast_type(Rc::new(AirBlockType)))
                 }),
         )
     }
@@ -119,9 +135,9 @@ impl BlockStorage for ChunkBlockStorage {
 }
 
 impl ChunkBlockStorage {
-    pub fn get_vertices(&self) -> Vec<Vertex> {
+    pub fn get_vertices(self) -> Vec<Vertex> {
         let mut vec = Vec::new();
-        vec.extend(self.iter().flat_map(|x| {
+        vec.extend(self.into_iter().flat_map(|x| {
             x.1.get_vertices().into_iter().map(move |s| {
                 Vertex::new(s.x + x.0.x as f64, s.y + x.0.y as f64, s.z + x.0.z as f64)
             })
