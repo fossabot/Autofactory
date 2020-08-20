@@ -67,7 +67,7 @@ impl<T> Block<T> {
 
 pub mod airblock;
 pub mod exampleblock;
-
+// TODO: Implement Into_Iter with mut
 pub trait BlockStorage {
     fn get_block(&self, coords: BlockCoords) -> &Block<BlockData>;
     fn set_block<T>(&mut self, coords: BlockCoords, block: Block<T>);
@@ -78,8 +78,9 @@ pub trait BlockStorage {
 
 const CHUNK_SIZE: usize = 16;
 
+#[derive(Clone, Debug)]
 pub struct ChunkBlockStorage {
-    blocks: [[[Block<BlockData>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+    pub blocks: [[[Block<BlockData>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
 }
 
 use airblock::*;
@@ -114,6 +115,18 @@ impl BlockStorage for ChunkBlockStorage {
         ChunkBlockStorage {
             blocks: array![array![array![Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
         }
+    }
+}
+
+impl ChunkBlockStorage {
+    pub fn get_vertices(&self) -> Vec<Vertex> {
+        let mut vec = Vec::new();
+        vec.extend(self.iter().flat_map(|x| {
+            x.1.get_vertices().into_iter().map(move |s| {
+                Vertex::new(s.x + x.0.x as f64, s.y + x.0.y as f64, s.z + x.0.z as f64)
+            })
+        }));
+        vec
     }
 }
 

@@ -15,3 +15,8 @@ fn print_chunk() {
     let chunk = ChunkBlockStorage::new();
     chunk.iter().for_each(|x| println!("{:?}", x));
 }
+
+#[test]
+fn gen_chunk() {
+    println!("{:#?}", crate::utils::generate_random_chunk());
+}

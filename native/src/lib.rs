@@ -29,6 +29,17 @@ pub fn write_buffer(mut cx: FunctionContext) -> JsResult<JsBuffer> {
     Ok(buf)
 }
 
+pub fn example_chunk_vertices(mut cx: FunctionContext) -> JsResult<JsBuffer> {
+    let message = utils::generate_random_chunk().get_vertices();
+    let mut buf = cx.buffer(message.len() as u32)?;
+
+    cx.borrow_mut(&mut buf, |data| {
+        data.as_mut_slice::<u8>().copy_from_slice(message)
+    });
+
+    Ok(buf)
+}
+
 fn hello(mut cx: FunctionContext) -> JsResult<JsNull> {
     unsafe {
         let foundation = physx_create_foundation();
