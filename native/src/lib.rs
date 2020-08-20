@@ -31,13 +31,14 @@ pub fn write_buffer(mut cx: FunctionContext) -> JsResult<JsBuffer> {
 
 pub fn example_chunk_vertices(mut cx: FunctionContext) -> JsResult<JsBuffer> {
     let message = utils::generate_random_chunk().get_vertices();
-    let mut buf = cx.buffer(message.len() as u32 * std::mem::size_of::<blocks::Vertex>() as u32)?;
-
-    cx.borrow_mut(&mut buf, |data| unsafe {
-        data.as_mut_slice::<u8>().copy_from_slice(std::mem::transmute(message.as_slice()))
-    });
-
-    Ok(buf)
+    unsafe {
+        let slice = std::mem::transmute::<_, &[u8]>(message.as_slice());
+        let mut buf = cx.buffer(slice.len() as u32)?;
+        cx.borrow_mut(&mut buf, |data| {
+            data.as_mut_slice::<u8>().copy_from_slice(slice)
+        });
+        Ok(buf)
+    }
 }
 
 fn hello(mut cx: FunctionContext) -> JsResult<JsNull> {

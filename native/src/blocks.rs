@@ -89,18 +89,20 @@ use airblock::*;
 impl IntoIterator for ChunkBlockStorage {
     type Item = (BlockCoords, Block<BlockData>);
     type IntoIter = std::vec::IntoIter<Self::Item>;
-    fn into_iter(self) -> <Self as std::iter::IntoIterator>::IntoIter { self.blocks
-                .iter()
-                .enumerate()
-                .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
-                .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
-                .map(|x| {
-                    (
-                        BlockCoords::new(x.0 as i64, x.1 as i64, x.2 as i64),
-                        x.3.clone(),
-                    )
-                })
-                .collect::<Vec<Self::Item>>().into_iter()
+    fn into_iter(self) -> <Self as std::iter::IntoIterator>::IntoIter {
+        self.blocks
+            .iter()
+            .enumerate()
+            .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
+            .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
+            .map(|x| {
+                (
+                    BlockCoords::new(x.0 as i64, x.1 as i64, x.2 as i64),
+                    x.3.clone(),
+                )
+            })
+            .collect::<Vec<Self::Item>>()
+            .into_iter()
     }
 }
 
