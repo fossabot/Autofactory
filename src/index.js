@@ -57,4 +57,3 @@ worker.onmessage = (message) => {
             stats.update();
     }
 };
-console.log(require('../native').hello());

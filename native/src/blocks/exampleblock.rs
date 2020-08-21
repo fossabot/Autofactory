@@ -8,25 +8,27 @@ pub struct ExampleBlockData;
 impl BlockType<ExampleBlockData> for ExampleBlockType {
     fn get_vertices(&self, _: &ExampleBlockData) -> Vec<Vertex> {
         let mut vec = vec![];
-        let mut split = |x: [Vertex; 4]| {
-            vec.append(&mut vec![x[0], x[1], x[3], x[2], x[3], x[1]]);
+        let vertices = [
+            Vertex::new(0.5, 0.5, 0.5),
+            Vertex::new(0.5, 0.5, -0.5),
+            Vertex::new(0.5, -0.5, 0.5),
+            Vertex::new(0.5, -0.5, -0.5),
+            Vertex::new(-0.5, 0.5, -0.5),
+            Vertex::new(-0.5, 0.5, 0.5),
+            Vertex::new(-0.5, -0.5, -0.5),
+            Vertex::new(-0.5, -0.5, 0.5),
+        ];
+        let mut at = |x: usize| {
+            vec.push(vertices[x]);
         };
-        let v000 = Vertex::new(0.0, 0.0, 0.0);
-        let v001 = Vertex::new(0.0, 0.0, 1.0);
-        let v010 = Vertex::new(0.0, 1.0, 0.0);
-        let v011 = Vertex::new(0.0, 1.0, 1.0);
-        let v100 = Vertex::new(1.0, 0.0, 0.0);
-        let v101 = Vertex::new(1.0, 0.0, 1.0);
-        let v110 = Vertex::new(1.0, 1.0, 0.0);
-        let v111 = Vertex::new(1.0, 1.0, 1.0);
-        split([v000, v001, v011, v010]);
-        split([v100, v101, v111, v110]);
 
-        split([v000, v100, v110, v010]);
-        split([v001, v101, v111, v011]);
-
-        split([v000, v001, v101, v100]);
-        split([v010, v011, v111, v110]);
+        let index = [
+            0, 2, 1, 2, 3, 1, 4, 6, 5, 6, 7, 5, 4, 5, 1, 5, 0, 1, 7, 6, 2, 6, 3, 2, 5, 7, 0, 7, 2,
+            0, 1, 3, 4, 3, 6, 4,
+        ];
+        for x in index.iter() {
+            at(*x);
+        }
 
         vec
     }

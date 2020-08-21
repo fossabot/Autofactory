@@ -18,26 +18,41 @@ pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     log.call(cx, handle_console, vec![s]).unwrap();
 }
 
-pub fn write_buffer(mut cx: FunctionContext) -> JsResult<JsBuffer> {
-    let message = "Hello, World".as_bytes();
-    let mut buf = cx.buffer(message.len() as u32)?;
+pub fn write_buffer<'a>(mut cx: CallContext<'a, JsObject>, msg: &[u8]) -> JsResult<'a, JsBuffer> {
+    let mut buf = cx.buffer(msg.len() as u32)?;
 
     cx.borrow_mut(&mut buf, |data| {
-        data.as_mut_slice::<u8>().copy_from_slice(message)
+        data.as_mut_slice::<u8>().copy_from_slice(msg)
     });
 
     Ok(buf)
 }
 
-pub fn example_chunk_vertices(mut cx: FunctionContext) -> JsResult<JsBuffer> {
-    let message = utils::generate_random_chunk().get_vertices();
+pub fn example_chunk_vertices(cx: FunctionContext) -> JsResult<JsBuffer> {
     unsafe {
-        let slice = std::mem::transmute::<_, &[u8]>(message.as_slice());
-        let mut buf = cx.buffer(slice.len() as u32)?;
-        cx.borrow_mut(&mut buf, |data| {
-            data.as_mut_slice::<u8>().copy_from_slice(slice)
-        });
-        Ok(buf)
+        let mut message = utils::generate_random_chunk().get_vertices();
+        for x in &mut message {
+            *x = blocks::Vertex::new(x.x - 8.0, x.y - 8.0, x.z - 8.0);
+        }
+        let slice = message.as_slice();
+        let slice = std::slice::from_raw_parts(
+            slice.as_ptr() as *const u8,
+            slice.len() * std::mem::size_of::<blocks::Vertex>(),
+        );
+        write_buffer(cx, slice)
+    }
+}
+
+pub fn write_origin(cx: FunctionContext) -> JsResult<JsBuffer> {
+    unsafe {
+        let message = vec![blocks::Vertex::new(0.0, 0.0, 0.0)];
+        println!("{:?}", message);
+        let slice = message.as_slice();
+        println!("{:?}", slice);
+        let len = slice.len() * std::mem::size_of::<blocks::Vertex>();
+        println!("{}", len);
+        let slice = std::slice::from_raw_parts(slice.as_ptr() as *const u8, len);
+        write_buffer(cx, slice)
     }
 }
 
@@ -112,8 +127,8 @@ fn hello(mut cx: FunctionContext) -> JsResult<JsNull> {
 
 register_module!(mut cx, {
     cx.export_function("hello", hello)?;
-    cx.export_function("write_buffer", write_buffer)?;
-    cx.export_function("example_chunk_vertices", example_chunk_vertices)
+    cx.export_function("example_chunk_vertices", example_chunk_vertices)?;
+    cx.export_function("write_origin", write_origin)
 });
 
 #[cfg(test)]

@@ -7,13 +7,13 @@ pub type BlockData = [u8; 32];
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Vertex {
-    x: f64,
-    y: f64,
-    z: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Vertex {
-    pub fn new(x: f64, y: f64, z: f64) -> Vertex {
+    pub fn new(x: f32, y: f32, z: f32) -> Vertex {
         Vertex { x, y, z }
     }
 }
@@ -141,7 +141,7 @@ impl ChunkBlockStorage {
         let mut vec = Vec::new();
         vec.extend(self.into_iter().flat_map(|x| {
             x.1.get_vertices().into_iter().map(move |s| {
-                Vertex::new(s.x + x.0.x as f64, s.y + x.0.y as f64, s.z + x.0.z as f64)
+                Vertex::new(s.x + x.0.x as f32, s.y + x.0.y as f32, s.z + x.0.z as f32)
             })
         }));
         vec
