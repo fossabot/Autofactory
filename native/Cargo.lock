@@ -95,6 +95,7 @@ version = "1.0.0"
 dependencies = [
  "array-macro",
  "euclid",
+ "lazy_static",
  "neon",
  "neon-build",
  "physx-sys",

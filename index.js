@@ -1,5 +1,5 @@
 'use strict';
-const isFullScreen = false;
+const isFullScreen = true;
 const isBorderless = true;
 const shouldShortcut = true; // Set to false to disable devtools (and prevent closing)
 const { app, BrowserWindow /*, screen*/ } = require('electron');

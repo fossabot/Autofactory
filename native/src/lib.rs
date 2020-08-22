@@ -1,5 +1,6 @@
 use neon::prelude::*;
 
+use euclid::default::Point3D;
 use physx_sys::*;
 use std::ptr::null_mut;
 pub mod blocks;
@@ -20,11 +21,17 @@ pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
 }
 
 pub fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
+    println!("Loading Chunks...");
     let mut mesh = rendering::Mesh::empty();
-    utils::generate_random_chunk().append_mesh(
-        euclid::default::Transform3D::translation(-8.0, -8.0, -8.0),
-        &mut mesh,
-    );
+    let size = cx.argument::<JsNumber>(0)?.value() as i64;
+    for x in -size..=size {
+        for y in -size..=size {
+            for z in -size..=size {
+                println!("Loading Chunk at ({}, {}, {})", x, y, z);
+                utils::generate_random_mesh(Point3D::new(x, y, z), &mut mesh);
+            }
+        }
+    }
     let obj = JsObject::new(&mut cx);
     let index = utils::to_buffer(&mut cx, mesh.index)?;
     obj.set(&mut cx, "index", index)?;
@@ -32,6 +39,7 @@ pub fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     obj.set(&mut cx, "positions", positions)?;
     let normals = utils::to_buffer(&mut cx, mesh.normals)?;
     obj.set(&mut cx, "normals", normals)?;
+    println!("Finished Loading Chunks");
     Ok(obj)
 }
 

@@ -1,14 +1,16 @@
-use crate::blocks::default::*;
 use crate::blocks::*;
+use default::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct AirBlockType;
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct AirBlockData;
 
+static VERTICES: (Vec<Vertex>, Vec<u32>) = (vec![], vec![]);
+
 impl DefaultBlockType<AirBlockData> for AirBlockType {
-    fn get_vertices() -> (Vec<Vertex>, Vec<u16>) {
-        (vec![], vec![])
+    fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>) {
+        &VERTICES
     }
 }
 crate::assert_block_size!(AirBlockData);
