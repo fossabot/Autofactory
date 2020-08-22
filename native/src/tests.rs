@@ -4,10 +4,11 @@ use std::rc::Rc;
 #[test]
 fn print_vertices() {
     let block = Block::new(
-        Rc::new(exampleblock::ExampleBlockType),
-        exampleblock::ExampleBlockData,
+        Rc::new(example::ExampleBlockType),
+        example::ExampleBlockData,
     );
-    println!("{:#?}", block.get_vertices());
+    let mut mesh = crate::rendering::Mesh::empty();
+    println!("{:#?}", block.append_mesh(euclid::default::Transform3D::identity(), &mut mesh));
 }
 
 #[test]
@@ -24,5 +25,7 @@ fn gen_chunk() {
 #[test]
 fn gen_vertices() {
     let chunk = crate::utils::generate_random_chunk();
-    assert_ne!(chunk.get_vertices().len(), 0);
+    let mut mesh = crate::rendering::Mesh::empty();
+    chunk.append_mesh(euclid::default::Transform3D::identity(), &mut mesh);
+    println!("{:?}", mesh);
 }

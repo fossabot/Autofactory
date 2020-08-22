@@ -52,7 +52,7 @@ onmessage = async (startupMessage) => {
     composer.addPass(new ShaderPass(CopyShader));
 
     let cube;
-    /*{
+    {
         const image = await loadImage('textures/cubeTexture2.png');
         const cubeTexture = new THREE.DataTexture(image.data, image.width, image.height, THREE.RGBAFormat);
         const boxWidth = 1;
@@ -62,17 +62,17 @@ onmessage = async (startupMessage) => {
         const material = new THREE.MeshPhongMaterial({ map: cubeTexture });
         cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
-    }*/
-    {
-        const material = new THREE.MeshBasicMaterial({ color: 0x33618e, wireframe: true });
+    }
+    /*{
+        const material = new THREE.MeshBasicMaterial({ color: 0x33618e });
         const geometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array(require('../native/').example_chunk_vertices().buffer);
+        const vertices = new Float32Array(require('../native/').example_chunk_mesh().buffer);
         console.log(vertices);
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         console.log(geometry);
         cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
-    }
+    }*/
     // Lights
     {
         const color = 0xffffff;

@@ -1,7 +1,8 @@
 use crate::blocks::*;
-use exampleblock::*;
+use example::*;
 use rand::prelude::*;
 use std::rc::Rc;
+use neon::prelude::*;
 
 pub fn generate_random_chunk() -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new();
@@ -15,4 +16,19 @@ pub fn generate_random_chunk() -> ChunkBlockStorage {
         }
     }
     chunk
+}
+
+pub fn to_buffer<'a, T>(cx: &mut CallContext<'a, JsObject>, vec: Vec<T>) -> JsResult<'a, JsBuffer> {
+    unsafe {
+        let slice = vec.as_slice();
+        let slice = std::slice::from_raw_parts(
+            slice.as_ptr() as *const u8,
+            slice.len() * std::mem::size_of::<T>(),
+        );
+        let mut buf = cx.buffer(slice.len() as u32).unwrap();
+        cx.borrow_mut(&mut buf, |data| {
+            data.as_mut_slice::<u8>().copy_from_slice(slice)
+        });
+        Ok(buf)
+    }
 }
