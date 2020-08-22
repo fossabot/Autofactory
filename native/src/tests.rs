@@ -8,7 +8,10 @@ fn print_vertices() {
         example::ExampleBlockData,
     );
     let mut mesh = crate::rendering::Mesh::empty();
-    println!("{:#?}", block.append_mesh(euclid::default::Transform3D::identity(), &mut mesh));
+    println!(
+        "{:#?}",
+        block.append_mesh(euclid::default::Transform3D::identity(), &mut mesh)
+    );
 }
 
 #[test]

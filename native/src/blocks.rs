@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use array_macro::array;
 
-use euclid::default::*;
 use crate::rendering::*;
+use euclid::default::*;
 
 pub type BlockData = [u8; 32];
 
@@ -67,8 +67,8 @@ impl<T> Block<T> {
 }
 
 pub mod air;
-pub mod example;
 pub mod default;
+pub mod example;
 
 // TODO: Implement Into_Iter with mut
 pub trait BlockStorage {
@@ -122,12 +122,7 @@ impl BlockStorage for ChunkBlockStorage {
                 .enumerate()
                 .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
                 .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
-                .map(|x| {
-                    (
-                        Point3D::new(x.0, x.1, x.2).to_i64(),
-                        x.3.clone(),
-                    )
-                }),
+                .map(|x| (Point3D::new(x.0, x.1, x.2).to_i64(), x.3.clone())),
         )
     }
 

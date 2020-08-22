@@ -3,8 +3,8 @@ use neon::prelude::*;
 use physx_sys::*;
 use std::ptr::null_mut;
 pub mod blocks;
-pub mod utils;
 pub mod rendering;
+pub mod utils;
 
 pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     let global = cx.global().downcast::<JsObject>().or_throw(cx).unwrap();
@@ -21,7 +21,10 @@ pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
 
 pub fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     let mut mesh = rendering::Mesh::empty();
-    utils::generate_random_chunk().append_mesh(euclid::default::Transform3D::translation(-8.0, -8.0, -8.0), &mut mesh);
+    utils::generate_random_chunk().append_mesh(
+        euclid::default::Transform3D::translation(-8.0, -8.0, -8.0),
+        &mut mesh,
+    );
     let obj = JsObject::new(&mut cx);
     let index = utils::to_buffer(&mut cx, mesh.index)?;
     obj.set(&mut cx, "index", index)?;

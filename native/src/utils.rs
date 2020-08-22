@@ -1,8 +1,8 @@
 use crate::blocks::*;
 use example::*;
+use neon::prelude::*;
 use rand::prelude::*;
 use std::rc::Rc;
-use neon::prelude::*;
 
 pub fn generate_random_chunk() -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new();
