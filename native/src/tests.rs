@@ -16,13 +16,13 @@ fn print_vertices() {
         block.append_mesh(euclid::default::Transform3D::identity(), &mut mesh)
     );
 }
-
+/*
 #[test]
 fn print_chunk() {
     let chunk = ChunkBlockStorage::new();
     chunk.into_iter().for_each(|x| println!("{:?}", x));
 }
-
+*/
 #[test]
 fn gen_chunk() {
     println!("{:#?}", crate::utils::generate_random_chunk());
@@ -54,4 +54,13 @@ fn gen_random_chunk() {
         }
     }
     println!("{:?}", mesh);
+}
+
+#[test]
+fn borrow_dynamic_iterator_works() {
+    let mut vec = vec![1, 2, 3];
+    let mut iter = (&mut vec).into_iter();
+    let iter = &mut || iter.next();
+    let mut iter = crate::utils::BorrowDynamicIterator::new(iter);
+    assert_eq!(*iter.next().unwrap(), 1);
 }
