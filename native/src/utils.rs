@@ -44,37 +44,3 @@ pub fn to_buffer<'a, T>(cx: &mut CallContext<'a, JsObject>, vec: Vec<T>) -> JsRe
         Ok(buf)
     }
 }
-
-pub struct DynamicIterator<T> {
-    iter: Box<dyn FnMut() -> Option<T>>
-}
-
-impl<T> Iterator for DynamicIterator<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> { (self.iter)() }
-}
-
-impl<T> DynamicIterator<T> {
-    pub fn new(a: impl FnMut() -> Option<T>) -> DynamicIterator<T> {
-        DynamicIterator {
-            iter: a
-        }
-    }
-}
-
-pub struct BorrowDynamicIterator<'a, T> {
-    iter: &'a mut dyn FnMut() -> Option<T>
-}
-
-impl<T> Iterator for BorrowDynamicIterator<'_, T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> { (self.iter)() }
-}
-
-impl<'a, T> BorrowDynamicIterator<'a, T> {
-    pub fn new(a: &'a mut dyn FnMut() -> Option<T>) -> BorrowDynamicIterator<'a, T> {
-        BorrowDynamicIterator {
-            iter: a
-        }
-    }
-}

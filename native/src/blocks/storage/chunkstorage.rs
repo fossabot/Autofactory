@@ -1,5 +1,3 @@
-use crate::utils::BorrowDynamicIterator;
-use crate::utils::DynamicIterator;
 use crate::blocks::*;
 use crate::rendering::Mesh;
 
@@ -12,71 +10,13 @@ const CHUNK_SIZE: usize = 16;
 pub struct ChunkBlockStorage {
     pub blocks: Box<[[[Block<BlockData>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>,
 }
-
-/*
-impl IntoIterator for ChunkBlockStorage {
-    type Item = (Point3D<i64>, Block<BlockData>);
-    type IntoIter = DynamicIterator<Self::Item>;
-    fn into_iter(self) -> Self::IntoIter {
-        let mut iter = self.blocks
-            .iter()
-            .enumerate()
-            .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
-            .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
-            .map(|x| {
-                (
-                    Point3D::new(x.0 as i64, x.1 as i64, x.2 as i64),
-                    x.3.clone(),
-                )
-            });
-        DynamicIterator::new(Box::new(move || iter.next()))
-    }
-}*/
-/*
-impl<'a> IntoIterator for &'a ChunkBlockStorage {
-    type Item = (Point3D<i64>, &'a Block<BlockData>);
-    type IntoIter = BorrowDynamicIterator<'a, Self::Item>;
-    fn into_iter(self) -> Self::IntoIter {
-        let iter1 = (*self.blocks)
-            .iter();
-        let mut iter2 =
-            iter1.enumerate()
-            .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
-            .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
-            .map(|x| {
-                (
-                    Point3D::new(x.0 as i64, x.1 as i64, x.2 as i64),
-                    x.3,
-                )
-            });
-        let mut iter = move || iter2.next();
-        BorrowDynamicIterator::new(&mut iter)
-    }
-
-}
-*/
-
-impl<'a> ChunkBlockStorage {
-    fn into_iter(&'a self) -> DynamicIterator<(Point3D<i64>, &'a Block<BlockData>)> {
-        let iter1 = (*self.blocks)
-            .iter();
-        let mut iter2 =
-            iter1.enumerate()
-            .flat_map(|x| x.1.iter().enumerate().map(move |y| (x.0, y.0, y.1)))
-            .flat_map(|x| x.2.iter().enumerate().map(move |y| (x.0, x.1, y.0, y.1)))
-            .map(|x| {
-                (
-                    Point3D::new(x.0 as i64, x.1 as i64, x.2 as i64),
-                    x.3,
-                )
-            });
-        DynamicIterator::new(move || iter2.next())
-    }
-
-}
 impl BlockStorage for ChunkBlockStorage {
     fn get_block(&self, coords: Point3D<i64>) -> Option<&Block<BlockData>> {
-        if coords.to_array().iter().any(|a| *a < 0 || *a >= CHUNK_SIZE as i64) {
+        if coords
+            .to_array()
+            .iter()
+            .any(|a| *a < 0 || *a >= CHUNK_SIZE as i64)
+        {
             None
         } else {
             Some(&self.blocks[coords.x as usize][coords.y as usize][coords.z as usize])
@@ -88,7 +28,9 @@ impl BlockStorage for ChunkBlockStorage {
 
     fn new() -> Self {
         ChunkBlockStorage {
-            blocks: Box::new(array![array![array![Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]),
+            blocks: Box::new(
+                array![array![array![Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+            ),
         }
     }
 }
@@ -98,5 +40,113 @@ impl ChunkBlockStorage {
         self.into_iter().for_each(|a| {
             a.1.append_mesh(transform.pre_translate(a.0.to_vector().to_f32()), mesh);
         });
+    }
+}
+
+struct IntoIter {
+    x: i64,
+    y: i64,
+    z: i64,
+    chunk: ChunkBlockStorage,
+}
+impl Iterator for IntoIter {
+    type Item = (Point3D<i64>, Block<BlockData>);
+    fn next(&mut self) -> Option<Self::Item> {
+        self.x += 1;
+        if self.x >= CHUNK_SIZE as i64 {
+            self.x = 0;
+            self.y += 1;
+        }
+        if self.y >= CHUNK_SIZE as i64 {
+            self.y = 0;
+            self.z += 1;
+        }
+        let point = Point3D::new(self.x, self.y, self.z);
+        self.chunk.get_block(point).map(|x| (point, *x))
+    }
+}
+
+struct BorrowIntoIter<'a> {
+    x: i64,
+    y: i64,
+    z: i64,
+    chunk: &'a ChunkBlockStorage,
+}
+impl<'a> Iterator for BorrowIntoIter<'a> {
+    type Item = &'a (Point3D<i64>, Block<BlockData>);
+    fn next(&mut self) -> Option<Self::Item> {
+        self.x += 1;
+        if self.x >= CHUNK_SIZE as i64 {
+            self.x = 0;
+            self.y += 1;
+        }
+        if self.y >= CHUNK_SIZE as i64 {
+            self.y = 0;
+            self.z += 1;
+        }
+        let point = Point3D::new(self.x, self.y, self.z);
+        self.chunk.get_block(point).map(|x| &(point, *x))
+    }
+}
+
+struct BorrowMutIntoIter<'a> {
+    x: i64,
+    y: i64,
+    z: i64,
+    chunk: &'a mut ChunkBlockStorage,
+}
+impl<'a> Iterator for BorrowMutIntoIter<'a> {
+    type Item = &'a mut (Point3D<i64>, Block<BlockData>);
+    fn next(&mut self) -> Option<Self::Item> {
+        self.x += 1;
+        if self.x >= CHUNK_SIZE as i64 {
+            self.x = 0;
+            self.y += 1;
+        }
+        if self.y >= CHUNK_SIZE as i64 {
+            self.y = 0;
+            self.z += 1;
+        }
+        let point = Point3D::new(self.x, self.y, self.z);
+        self.chunk.get_block(point).map(|x| &mut (point, *x))
+    }
+}
+
+impl IntoIterator for ChunkBlockStorage {
+    type Item = (Point3D<i64>, Block<BlockData>);
+    type IntoIter = IntoIter;
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter {
+            x: -1,
+            y: 0,
+            z: 0,
+            chunk: self,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a ChunkBlockStorage {
+    type Item = &'a (Point3D<i64>, Block<BlockData>);
+    type IntoIter = BorrowIntoIter<'a>;
+    fn into_iter(self) -> Self::IntoIter {
+        BorrowIntoIter {
+            x: -1,
+            y: 0,
+            z: 0,
+            chunk: self,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
+    type Item = &'a mut (Point3D<i64>, Block<BlockData>);
+    type IntoIter = BorrowMutIntoIter<'a>;
+    fn into_iter(self) -> Self::IntoIter {
+        BorrowMutIntoIter {
+            x: -1,
+            y: 0,
+            z: 0,
+            chunk: self,
+        }
     }
 }

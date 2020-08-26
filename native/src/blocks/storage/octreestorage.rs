@@ -1,6 +1,6 @@
-use euclid::default::*;
-use chunkstorage::*;
 use super::*;
+use chunkstorage::*;
+use euclid::default::*;
 /* Every i64 has units of chunk size */
 pub struct ChunkLeaf {
     pub location: Point3D<i64>,
@@ -29,7 +29,13 @@ pub struct OctreeBlockStorage {
 }
 
 impl BlockStorage for OctreeBlockStorage {
-    fn get_block(&self, _: Point3D<i64>) -> Option<&Block<[u8; 32]>> { todo!() }
-    fn set_block<T>(&mut self, _: Point3D<i64>, _: Block<T>) { todo!() }
-    fn new() -> Self { todo!() }
+    fn get_block(&self, _: Point3D<i64>) -> Option<&Block<[u8; 32]>> {
+        todo!()
+    }
+    fn set_block<T>(&mut self, _: Point3D<i64>, _: Block<T>) {
+        todo!()
+    }
+    fn new() -> Self {
+        todo!()
+    }
 }
