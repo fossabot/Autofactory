@@ -38,7 +38,7 @@ pub trait BlockType<T>: std::fmt::Debug {
 #[derive(Clone, Debug)]
 pub struct Block<T> {
     pub block_type: Rc<dyn BlockType<T>>,
-    pub data: BlockData,
+    data: BlockData,
 }
 
 impl<T> Block<T> {
