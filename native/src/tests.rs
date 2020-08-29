@@ -1,5 +1,4 @@
 use crate::blocks::*;
-use std::rc::Rc;
 use storage::chunkstorage::*;
 use storage::*;
 use types::*;
@@ -7,7 +6,7 @@ use types::*;
 #[test]
 fn print_vertices() {
     let block = Block::new(
-        Rc::new(example::ExampleBlockType),
+        Box::new(example::ExampleBlockType),
         example::ExampleBlockData,
     );
     let mut mesh = crate::rendering::Mesh::empty();

@@ -1,5 +1,4 @@
 use core::iter::*;
-use std::rc::Rc;
 
 use array_macro::array;
 
@@ -37,7 +36,7 @@ pub trait BlockType<T>: std::fmt::Debug {
 
 #[derive(Clone, Debug)]
 pub struct Block<T> {
-    pub block_type: Rc<dyn BlockType<T>>,
+    pub block_type: Box<dyn BlockType<T>>,
     data: BlockData,
 }
 
@@ -49,7 +48,7 @@ impl<T> Block<T> {
         }
     }
 
-    pub fn new(block_type: Rc<dyn BlockType<T>>, data: T) -> Block<T> {
+    pub fn new(block_type: Box<dyn BlockType<T>>, data: T) -> Block<T> {
         unsafe {
             let data = *std::mem::transmute::<_, &BlockData>(&data);
             Block::<T> {
@@ -61,7 +60,7 @@ impl<T> Block<T> {
     pub fn cast(block: Block<T>) -> Block<BlockData> {
         unsafe { std::mem::transmute(block) }
     }
-    pub fn cast_type(t: Rc<dyn BlockType<T>>) -> Rc<dyn BlockType<BlockData>> {
+    pub fn cast_type(t: Box<dyn BlockType<T>>) -> Box<dyn BlockType<BlockData>> {
         unsafe { std::mem::transmute(t) }
     }
 }

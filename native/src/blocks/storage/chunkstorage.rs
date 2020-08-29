@@ -12,7 +12,7 @@ pub struct ChunkBlockStorage {
     pub blocks: Box<[[[Block<BlockData>; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>,
 }
 impl BlockStorage for ChunkBlockStorage {
-    fn get_block(&self, coords: Point3D<i64>) -> Option<&Block<BlockData>> {
+    fn get_opt(&self, coords: Point3D<i64>) -> Option<&Block<BlockData>> {
         if coords
             .to_array()
             .iter()
@@ -23,14 +23,22 @@ impl BlockStorage for ChunkBlockStorage {
             Some(&self.blocks[coords.x as usize][coords.y as usize][coords.z as usize])
         }
     }
-    fn set_block<T>(&mut self, coords: Point3D<i64>, block: Block<T>) {
-        self.blocks[coords.x as usize][coords.y as usize][coords.z as usize] = Block::cast(block);
+    fn get_mut_opt(&mut self, coords: Point3D<i64>) -> Option<&mut Block<BlockData>> {
+        if coords
+            .to_array()
+            .iter()
+            .any(|a| *a < 0 || *a >= CHUNK_SIZEI)
+        {
+            None
+        } else {
+            Some(&mut self.blocks[coords.x as usize][coords.y as usize][coords.z as usize])
+        }
     }
 
     fn new() -> Self {
         ChunkBlockStorage {
             blocks: Box::new(
-                array![array![array![Block::cast(Block::new(Rc::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+                array![array![array![Block::cast(Block::new(Box::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
             ),
         }
     }
@@ -44,7 +52,7 @@ impl ChunkBlockStorage {
     }
 }
 
-struct IntoIter {
+pub struct IntoIter {
     x: i64,
     y: i64,
     z: i64,
@@ -63,11 +71,11 @@ impl Iterator for IntoIter {
             self.z += 1;
         }
         let point = Point3D::new(self.x, self.y, self.z);
-        self.chunk.get_block(point).map(|x| (point, x.clone()))
+        self.chunk.get_opt(point).map(|x| (point, x.clone()))
     }
 }
 
-struct BorrowIntoIter<'a> {
+pub struct BorrowIntoIter<'a> {
     x: i64,
     y: i64,
     z: i64,
@@ -86,7 +94,7 @@ impl<'a> Iterator for BorrowIntoIter<'a> {
             self.z += 1;
         }
         let point = Point3D::new(self.x, self.y, self.z);
-        let block = self.chunk.get_block(point);
+        let block = self.chunk.get_opt(point);
         if block.is_some() {
             Some((point, block.unwrap()))
         } else {
@@ -94,7 +102,7 @@ impl<'a> Iterator for BorrowIntoIter<'a> {
         }
     }
 }
-
+/*
 struct BorrowMutIntoIter<'a> {
     x: i64,
     y: i64,
@@ -114,7 +122,7 @@ impl<'a> Iterator for BorrowMutIntoIter<'a> {
             self.z += 1;
         }
         let point = Point3D::new(self.x, self.y, self.z);
-        let block = self.chunk.get_block(point);
+        let block = self.chunk.get_mut_opt(point);
         if block.is_some() {
             Some((point, block.unwrap()))
         } else {
@@ -122,7 +130,7 @@ impl<'a> Iterator for BorrowMutIntoIter<'a> {
         }
     }
 }
-
+*/
 impl IntoIterator for ChunkBlockStorage {
     type Item = (Point3D<i64>, Block<BlockData>);
     type IntoIter = IntoIter;
@@ -148,7 +156,7 @@ impl<'a> IntoIterator for &'a ChunkBlockStorage {
         }
     }
 }
-
+/*
 impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
     type Item = (Point3D<i64>, &'a mut Block<BlockData>);
     type IntoIter = BorrowMutIntoIter<'a>;
@@ -161,3 +169,4 @@ impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
         }
     }
 }
+*/
