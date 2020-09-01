@@ -35,8 +35,8 @@ pub trait BlockType<T>: std::fmt::Debug {
 }
 
 #[derive(Clone, Debug)]
-pub struct Block<T> {
-    pub block_type: Box<dyn BlockType<T>>,
+pub struct Block<T: 'static> {
+    pub block_type: &'static dyn BlockType<T>,
     data: BlockData,
 }
 
@@ -48,11 +48,11 @@ impl<T> Block<T> {
         }
     }
 
-    pub fn new(block_type: Box<dyn BlockType<T>>, data: T) -> Block<T> {
+    pub fn new(block_type: &'static dyn BlockType<T>, data: T) -> Block<T> {
         unsafe {
             let data = *std::mem::transmute::<_, &BlockData>(&data);
             Block::<T> {
-                block_type: block_type,
+                block_type,
                 data,
             }
         }

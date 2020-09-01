@@ -38,7 +38,7 @@ impl BlockStorage for ChunkBlockStorage {
     fn new() -> Self {
         ChunkBlockStorage {
             blocks: Box::new(
-                array![array![array![Block::cast(Block::new(Box::new(AirBlockType), AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+                array![array![array![Block::cast(Block::new(&AirBlockType, AirBlockData)); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
             ),
         }
     }
