@@ -238,6 +238,7 @@ version = "0.1.0"
 name = "ref_clone_derive"
 version = "0.1.0"
 dependencies = [
+ "proc-macro2",
  "quote",
  "ref_clone",
  "syn",
