@@ -100,7 +100,7 @@ dependencies = [
  "neon-build",
  "physx-sys",
  "rand",
- "ref_clone",
+ "ref_clone 0.2.0",
  "ref_clone_derive",
  "static_assertions",
 ]
@@ -232,15 +232,21 @@ dependencies = [
 
 [[package]]
 name = "ref_clone"
-version = "0.1.0"
+version = "0.2.0"
+
+[[package]]
+name = "ref_clone"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02ab941b16c82a8e0cefd6f243c294b7bf2c15e4c4e337374c8026bcbe1fb101"
 
 [[package]]
 name = "ref_clone_derive"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "ref_clone",
+ "ref_clone 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn",
 ]
 

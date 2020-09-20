@@ -1,4 +1,6 @@
-use core::iter::*;
+use std::mem::size_of;
+use std::collections::HashMap;
+use std::marker::PhantomData;
 
 use array_macro::array;
 
@@ -31,49 +33,46 @@ pub trait BlockType<T>: std::fmt::Debug {
     ///
     /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
     /// The translation is applied first, then the rotation.
-    fn append_mesh(&self, data: &T, transform: Transform3D<f32>, mesh: &mut Mesh);
+    fn append_mesh(&self, block: Block, data: &T, transform: Transform3D<f32>, mesh: &mut Mesh);
 }
 
-#[derive(Clone, Debug)]
-pub struct Block<T: 'static> {
-    pub block_type: &'static dyn BlockType<T>,
-    data: BlockData,
+// u8 = u3 Axis + u2 Rot around Axis
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd, Default)]
+pub struct Rotation {
+    value: u8,
+}
+pub type Stress = u16;
+pub type BlockTypeId = u8;
+pub type PositionedBlock = (Point3D<i64>, Block);
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd, Default)]
+pub struct Block {
+    pub block_type: BlockTypeId,
+    pub rotation: Rotation,
+    pub stress: Stress,
+    _private_marker: PhantomData<u8>
 }
 
-impl<T> Block<T> {
-    pub fn append_mesh(&self, transform: Transform3D<f32>, mesh: &mut Mesh) {
-        unsafe {
-            self.block_type
-                .append_mesh(std::mem::transmute::<_, &T>(&self.data), transform, mesh)
+pub type ExternalBlockDataStorage = HashMap<Point3D<i64>, BlockData>;
+
+impl Block {
+    pub fn new(block_type: BlockTypeId, rotation: Rotation, stress: Stress) -> Block {
+        Block {
+            block_type,
+            rotation,
+            stress,
+            _private_marker: PhantomData,
         }
     }
-
-    pub fn new(block_type: &'static dyn BlockType<T>, data: T) -> Block<T> {
-        unsafe {
-            let data = *std::mem::transmute::<_, &BlockData>(&data);
-            Block::<T> {
-                block_type,
-                data,
-            }
-        }
-    }
-    pub fn cast(block: Block<T>) -> Block<BlockData> {
-        unsafe { std::mem::transmute(block) }
-    }
-    pub fn cast_type(t: Box<dyn BlockType<T>>) -> Box<dyn BlockType<BlockData>> {
-        unsafe { std::mem::transmute(t) }
-    }
 }
 
-pub mod default;
-pub mod storage;
-pub mod types;
+pub struct BlockEnvironment {
+    storage: ExternalBlockDataStorage,
+    block_types: [&'static dyn BlockType<BlockData>; size_of::<BlockTypeId>()]
+}
 
-#[macro_export]
-macro_rules! assert_block_size {
-    ($t:ty) => {
-        static_assertions::const_assert!(
-            std::mem::size_of::<$t>() <= std::mem::size_of::<BlockData>()
-        );
-    };
+impl BlockEnvironment {
+    pub fn append_mesh(block: PositionedBlock, transform: Transform3D<f32>, mesh: &mut Mesh) {
+
+    }
 }
