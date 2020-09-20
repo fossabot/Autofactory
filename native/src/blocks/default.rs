@@ -9,7 +9,7 @@ impl<T, S> BlockType<S> for T
 where
     T: DefaultBlockType<S> + std::fmt::Debug,
 {
-    fn append_mesh(&self, _: &S, transform: Transform3D<f32>, mesh: &mut Mesh) {
+    fn append_mesh(&self, block: Block, _: &S, transform: Transform3D<f32>, mesh: &mut Mesh) {
         let (vertex, index) = Self::get_vertices();
         let start_pos_len = mesh.positions.len();
         for x in index {
