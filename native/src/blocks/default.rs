@@ -3,6 +3,7 @@ use crate::rendering::Mesh;
 
 pub trait DefaultBlockType<T> {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>);
+    fn new(&self, block: Block) -> T;
 }
 
 impl<T, S> BlockType<S> for T
@@ -22,4 +23,5 @@ where
             mesh.normals.push(*normal);
         }
     }
+    fn new(&self, block: Block) -> S { self.new(block) }
 }

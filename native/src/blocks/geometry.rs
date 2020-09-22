@@ -1,4 +1,4 @@
-use std::mem::discriminant;
+use std::mem::transmute;
 use euclid::default::*;
 
 // u8 = u3 Axis + u2 Rot around Axis
@@ -30,12 +30,12 @@ pub enum Rot {
 
 impl Rotation {
     pub fn from(a: Axis, r: Rot) -> Rotation {
-        Rotation { value: discriminant(a) & discriminant(r) }
+        Rotation { value: a as u8 & r as u8 }
     }
 
     pub fn to(self) -> (Axis, Rot) {
         unsafe {
-            (self.value & 0b111 as Axis, self.value & 0b11000 as Rot)
+            (transmute(self.value & 0b111), transmute(self.value & 0b11000))
         }
     }
 
@@ -43,7 +43,7 @@ impl Rotation {
     pub fn to_transform(self) -> Transform3D<f32> { todo!() }
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Vertex {
     pub position: Point3D<f32>,
     pub normal: Vector3D<f32>,

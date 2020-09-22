@@ -12,5 +12,6 @@ impl DefaultBlockType<AirBlockData> for AirBlockType {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>) {
         &VERTICES
     }
+    fn new(&self, _: Block) -> AirBlockData { AirBlockData }
 }
 crate::assert_block_size!(AirBlockData);

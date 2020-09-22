@@ -48,5 +48,6 @@ impl DefaultBlockType<ExampleBlockData> for ExampleBlockType {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>) {
         &VERTICES
     }
+    fn new(&self, _: Block) -> ExampleBlockData { ExampleBlockData }
 }
 crate::assert_block_size!(ExampleBlockData);

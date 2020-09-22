@@ -1,16 +1,20 @@
 use super::*;
 use chunkstorage::*;
+use ref_clone_derive::*;
 /// Every i64 has units of chunk size
+#[RefAccessors]
 pub struct ChunkLeaf {
     pub location: Point3D<i64>,
     pub chunk: ChunkBlockStorage,
 }
 
+#[RefAccessors]
 pub struct AirLeaf {
     pub location: Point3D<i64>,
     pub size: i64,
 }
 
+#[RefAccessors]
 pub struct Branch {
     /// Location of the center of the branch.
     pub location: Point3D<i64>,
@@ -31,6 +35,7 @@ impl Branch {
     }
 }
 
+#[RefAccessors]
 pub enum Node {
     ChunkLeaf(ChunkLeaf),
     AirLeaf(AirLeaf),
@@ -54,10 +59,10 @@ impl Node {
         }
     }
 
-    fn get_opt(&self, location: Point3D<i64>) -> Option<&Block<BlockData>> {
-        match self {
-            Node::AirLeaf(_) => None,
-            Node::ChunkLeaf(ChunkLeaf {
+    fn get_opt_ref<'a, T : RefType>(this: Ref<'a, Self, T>, coords: Point3D<i64>) -> Option<Ref<'a, Block, T>> {
+        match this.to_wrapped() {
+            NodeRef::AirLeaf(_) => None,
+            NodeRef::ChunkLeaf(ChunkLeaf {
                 chunk,
                 location: chunk_location,
             }) => chunk.get_opt(location - chunk_location.to_vector()),
@@ -75,28 +80,6 @@ impl Node {
             }
         }
     }
-
-    fn get_mut_opt(&mut self, location: Point3D<i64>) -> Option<&mut Block<BlockData>> {
-        match self {
-            Node::AirLeaf(_) => None,
-            Node::ChunkLeaf(ChunkLeaf {
-                chunk,
-                location: chunk_location,
-            }) => chunk.get_mut_opt(location - chunk_location.to_vector()),
-            Node::Branch(branch) => {
-                let location = location - branch.location.to_vector();
-                if branch.contains(location) {
-                    let trees = &mut branch.trees;
-                    let x = if location.x < 0 { &mut trees[0] } else { &mut trees[1] };
-                    let y = if location.y < 0 { &mut x[0] } else { &mut x[1] };
-                    let z = if location.z < 0 { &mut y[0] } else { &mut y[1] };
-                    z.get_mut_opt(location)
-                } else {
-                    None
-                }
-            }
-        }
-    }
 }
 
 pub struct OctreeBlockStorage {
@@ -104,12 +87,10 @@ pub struct OctreeBlockStorage {
 }
 
 impl BlockStorage for OctreeBlockStorage {
-    fn get_opt(&self, location: Point3D<i64>) -> Option<&Block<BlockData>> {
-        self.root.get_opt(location)
-    }
-    fn get_mut_opt(&mut self, location: Point3D<i64>) -> Option<&mut Block<BlockData>> {
+
+    fn get_opt_ref(&mut self, location: Point3D<i64>) -> Option<&mut Block> {
         if !self.root.contains(location) {}
-        self.root.get_mut_opt(location)
+        self.root.get_opt_ref(location)
     }
     fn new() -> Self {
         OctreeBlockStorage {
