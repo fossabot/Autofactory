@@ -1,16 +1,23 @@
 use crate::blocks::*;
 use crate::rendering::Mesh;
 
-pub trait DefaultBlockType<T> {
+pub struct DefaultBlockData;
+
+pub trait DefaultBlock {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>);
-    fn new(&self, block: Block) -> T;
 }
 
-impl<T, S> BlockType<S> for T
+impl<T> BlockType<DefaultBlockData> for T
 where
-    T: DefaultBlockType<S> + std::fmt::Debug,
+    T: DefaultBlock + std::fmt::Debug,
 {
-    fn append_mesh(&self, block: Block, _: &S, transform: Transform3D<f32>, mesh: &mut Mesh) {
+    fn append_mesh(
+        &self,
+        block: Block,
+        _: BlockDataAccessor<DefaultBlockData>,
+        transform: Transform3D<f32>,
+        mesh: &mut Mesh,
+    ) {
         let (vertex, index) = Self::get_vertices();
         let start_pos_len = mesh.positions.len();
         for x in index {
@@ -23,5 +30,9 @@ where
             mesh.normals.push(*normal);
         }
     }
-    fn new(&self, block: Block) -> S { self.new(block) }
+    fn new(&self, block: Block) -> DefaultBlockData {
+        DefaultBlockData
+    }
 }
+
+crate::assert_block_size!(DefaultBlockData);

@@ -1,3 +1,5 @@
+#![feature(arbitrary_self_types)]
+
 use neon::prelude::*;
 
 use euclid::default::Point3D;
@@ -117,5 +119,5 @@ register_module!(mut cx, {
     cx.export_function("example_chunk_mesh", example_chunk_mesh)
 });
 
-#[cfg(test)]
-mod tests;
+// #[cfg(test)]
+// mod tests;

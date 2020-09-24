@@ -1,5 +1,5 @@
-use std::mem::transmute;
 use euclid::default::*;
+use std::mem::transmute;
 
 // u8 = u3 Axis + u2 Rot around Axis
 #[repr(transparent)]
@@ -30,17 +30,24 @@ pub enum Rot {
 
 impl Rotation {
     pub fn from(a: Axis, r: Rot) -> Rotation {
-        Rotation { value: a as u8 & r as u8 }
+        Rotation {
+            value: a as u8 & r as u8,
+        }
     }
 
     pub fn to(self) -> (Axis, Rot) {
         unsafe {
-            (transmute(self.value & 0b111), transmute(self.value & 0b11000))
+            (
+                transmute(self.value & 0b111),
+                transmute(self.value & 0b11000),
+            )
         }
     }
 
     // Rotates something on the top face.
-    pub fn to_transform(self) -> Transform3D<f32> { todo!() }
+    pub fn to_transform(self) -> Transform3D<f32> {
+        todo!()
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Default)]

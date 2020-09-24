@@ -232,19 +232,14 @@ dependencies = [
 
 [[package]]
 name = "ref_clone"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "090e3f51ba533bb4ec72e6d9ad3952658969e7138640c12af691790733916c4d"
+version = "0.5.0"
 
 [[package]]
 name = "ref_clone_derive"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69100c4ed899ededc000ecea20243409b6c7215b02f7a0ea7f28bff10cd81881"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "ref_clone",
  "syn",
 ]
 

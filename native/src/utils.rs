@@ -7,7 +7,7 @@ use neon::prelude::*;
 use std::rc::Rc;
 use types::example::*;*/
 
-pub fn generate_random_chunk() -> ChunkBlockStorage {
+pub fn generate_random_chunk<'a>() -> ChunkBlockStorage<'a> {
     todo!()
     /*let mut chunk = ChunkBlockStorage::new();
     for x in &mut chunk.blocks {

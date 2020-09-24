@@ -1,6 +1,7 @@
 use crate::blocks::*;
 use crate::rendering::Mesh;
 
+use array_macro::array;
 use storage::*;
 
 pub const CHUNK_SIZE: usize = 16;
@@ -8,11 +9,15 @@ pub const CHUNK_SIZEI: i64 = CHUNK_SIZE as i64;
 
 #[RefAccessors]
 #[derive(Clone, Debug)]
-pub struct ChunkBlockStorage {
+pub struct ChunkBlockStorage<'a> {
     pub blocks: Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>,
+    pub env: BlockEnvironment<'a>,
 }
-impl BlockStorage for ChunkBlockStorage {
-    fn get_opt_ref<'a, T : RefType>(this: Ref<'a, Self, T>, coords: Point3D<i64>) -> Option<Ref<'a, Block, T>> {
+impl BlockStorage for ChunkBlockStorage<'_> {
+    fn get_opt_ref<'b, T: RefType>(
+        self: Ref<'b, Self, T>,
+        coords: BlockLocation,
+    ) -> Option<Ref<'b, Block, T>> {
         if coords
             .to_array()
             .iter()
@@ -20,36 +25,51 @@ impl BlockStorage for ChunkBlockStorage {
         {
             None
         } else {
-            Some(this.to_wrapped().blocks[coords.x as usize][coords.y as usize][coords.z as usize])
+            Some(
+                self.to_wrapped()
+                    .blocks
+                    .deref_ref()
+                    .index_ref(coords.x as usize)
+                    .index_ref(coords.y as usize)
+                    .index_ref(coords.z as usize),
+            )
         }
     }
-
-    fn new() -> Self {
+}
+impl UniqueEnvironmentBlockStorage for ChunkBlockStorage<'_> {
+    fn get_env(&self) -> BlockEnvironment<'_> {
+        self.env
+    }
+}
+impl<'a> ExternalEnvironmentBlockStorage<'a> for ChunkBlockStorage<'a> {
+    fn new(env: BlockEnvironment<'a>) -> Self {
         ChunkBlockStorage {
+            env,
             blocks: Box::new(
-                array![array![array![Block::new(); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
+                array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), 0, Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE],
             ),
         }
     }
 }
 
-impl ChunkBlockStorage {
+impl ChunkBlockStorage<'_> {
     pub fn append_mesh(self, transform: Transform3D<f32>, mesh: &mut Mesh) {
         self.into_iter().for_each(|a| {
-            a.1.append_mesh(transform.pre_translate(a.0.to_vector().to_f32()), mesh);
+            self.env
+                .append_mesh(a, transform.pre_translate(a.0.to_vector().to_f32()), mesh);
         });
     }
 }
 
-pub struct IntoIter {
+pub struct IntoIter<'a> {
     x: i64,
     y: i64,
     z: i64,
-    chunk: ChunkBlockStorage,
+    chunk: ChunkBlockStorage<'a>,
 }
 
-impl Iterator for IntoIter {
-    type Item = (Point3D<i64>, Block);
+impl Iterator for IntoIter<'_> {
+    type Item = (BlockLocation, Block);
     fn next(&mut self) -> Option<Self::Item> {
         self.x += 1;
         if self.x >= CHUNK_SIZEI {
@@ -65,9 +85,9 @@ impl Iterator for IntoIter {
     }
 }
 
-impl IntoIterator for ChunkBlockStorage {
-    type Item = (Point3D<i64>, Block);
-    type IntoIter = IntoIter;
+impl<'a> IntoIterator for ChunkBlockStorage<'a> {
+    type Item = (BlockLocation, Block);
+    type IntoIter = IntoIter<'a>;
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
             x: -1,
@@ -79,16 +99,15 @@ impl IntoIterator for ChunkBlockStorage {
 }
 
 #[RefAccessors]
-pub struct RefIntoIter<'a, T : RefType> {
+pub struct RefIntoIter<'a, 'b, T: RefType> {
     x: i64,
     y: i64,
     z: i64,
-    chunk: Ref<'a, ChunkBlockStorage, T>,
+    chunk: Ref<'a, ChunkBlockStorage<'b>, T>,
 }
 // TODO: IMPLEMENT SIZE_HINT
-impl<'a, T : RefType> RefIntoIter<'a, T> {
-    fn step(this: &mut Ref<'a, Self, T>)  -> Option<(Point3D<i64>, Ref<'a, Block, T>)> {
-        let this = this.to_wrapped();
+impl<'a, 'b, T: RefType> RefIntoIter<'a, 'b, T> {
+    fn step(this: &mut Self) -> Option<(BlockLocation, Ref<'a, Block, T>)> {
         this.x += 1;
         if this.x >= CHUNK_SIZEI {
             this.x = 0;
@@ -99,7 +118,7 @@ impl<'a, T : RefType> RefIntoIter<'a, T> {
             this.z += 1;
         }
         let point = Point3D::new(this.x, this.y, this.z);
-        let block = this.chunk.get_opt_ref(point);
+        let block = BlockStorage::get_opt_ref(this.chunk, point);
         if block.is_some() {
             Some((point, block.unwrap()))
         } else {
@@ -108,42 +127,42 @@ impl<'a, T : RefType> RefIntoIter<'a, T> {
     }
 }
 
-impl<'a> Iterator for RefIntoIter<'a, Shared> {
-    type Item = (Point3D<i64>, &'a Block);
+impl<'a, 'b> Iterator for RefIntoIter<'a, 'b, Shared> {
+    type Item = (BlockLocation, &'a Block);
     fn next(&mut self) -> Option<Self::Item> {
-        self.step().map(|x| (x.0, x.1.to_ref()))
+        RefIntoIter::step(self).map(|x| (x.0, x.1.as_ref()))
     }
 }
 
-impl<'a> Iterator for RefIntoIter<'a, Unique> {
-    type Item = (Point3D<i64>, &'a mut Block);
+impl<'a, 'b> Iterator for RefIntoIter<'a, 'b, Unique> {
+    type Item = (BlockLocation, &'a mut Block);
     fn next(&mut self) -> Option<Self::Item> {
-        self.step().map(|x| (x.0, x.1.to_ref()))
+        RefIntoIter::step(self).map(|x| (x.0, x.1.as_mut()))
     }
 }
 
-impl<'a> IntoIterator for &'a ChunkBlockStorage {
-    type Item = (Point3D<i64>, &'a Block);
-    type IntoIter = RefIntoIter<'a, Shared>;
+impl<'a, 'b> IntoIterator for &'a ChunkBlockStorage<'b> {
+    type Item = (BlockLocation, &'a Block);
+    type IntoIter = RefIntoIter<'a, 'b, Shared>;
     fn into_iter(self) -> Self::IntoIter {
         RefIntoIter {
             x: -1,
             y: 0,
             z: 0,
-            chunk: self,
+            chunk: Ref::new(self),
         }
     }
 }
 
-impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
-    type Item = (Point3D<i64>, &'a mut Block);
-    type IntoIter = RefIntoIter<'a, Unique>;
+impl<'a, 'b> IntoIterator for &'a mut ChunkBlockStorage<'b> {
+    type Item = (BlockLocation, &'a mut Block);
+    type IntoIter = RefIntoIter<'a, 'b, Unique>;
     fn into_iter(self) -> Self::IntoIter {
         RefIntoIter {
             x: -1,
             y: 0,
             z: 0,
-            chunk: self,
+            chunk: Ref::new(self),
         }
     }
 }
