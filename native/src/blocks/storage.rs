@@ -22,7 +22,7 @@ pub trait BlockStorage {
     where
         Self: Sized,
     {
-        Self::get_opt_ref(Ref::new(self), coords).map(|x| x.as_mut())
+        Self::get_opt_ref(Ref::new(self), coords).map(|mut x| x.as_mut())
     }
 }
 
@@ -35,7 +35,7 @@ pub trait ExternalEnvironmentBlockStorage<'a>: BlockStorage {
 }
 
 pub trait UniqueEnvironmentBlockStorage: BlockStorage {
-    fn get_env(&self) -> BlockEnvironment;
+    fn get_env(&self) -> &BlockEnvironment;
 }
 
 pub trait UnboundedBlockStorage: BlockStorage {

@@ -13,7 +13,7 @@ where
 {
     fn append_mesh(
         &self,
-        block: Block,
+        _: Block,
         _: BlockDataAccessor<DefaultBlockData>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
@@ -30,7 +30,7 @@ where
             mesh.normals.push(*normal);
         }
     }
-    fn new(&self, block: Block) -> DefaultBlockData {
+    fn new(&self, _: Block) -> DefaultBlockData {
         DefaultBlockData
     }
 }

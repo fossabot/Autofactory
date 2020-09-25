@@ -1,9 +1,10 @@
+use std::ops::IndexMut;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::mem::transmute;
+
 use std::ops::Index;
 
 use crate::rendering::*;
@@ -18,18 +19,20 @@ pub type BlockTypeId = u8;
 pub type BlockLocation = Point3D<i64>;
 pub type PositionedBlock = (BlockLocation, Block);
 pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
-pub struct BlockDataAccessor<T> {
+pub struct BlockDataAccessor<'a, T> {
     location: BlockLocation,
-    storage: ExternalBlockDataStorage,
+    storage: &'a ExternalBlockDataStorage,
     _marker: PhantomData<T>,
 }
 
-impl<T> BlockDataAccessor<T> {
+impl<'a, T> BlockDataAccessor<'a, T> {
     pub fn access(&self) -> T {
-        std::mem::transmute(self.storage[&self.location])
+        unsafe {
+            std::mem::transmute_copy(&self.storage[&self.location])
+        }
     }
 
-    pub fn new(location: BlockLocation, storage: ExternalBlockDataStorage) -> Self {
+    pub fn new(location: BlockLocation, storage: &'a ExternalBlockDataStorage) -> Self {
         BlockDataAccessor {
             location,
             storage,
@@ -38,18 +41,26 @@ impl<T> BlockDataAccessor<T> {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct BlockTypes {
-    to: [&'static dyn BlockType<BlockData>; size_of::<BlockTypeId>()],
-    from: HashMap<&'static dyn BlockType<BlockData>, BlockTypeId>, // TODO: FIX
-}
+#[derive(Copy, Clone, Debug)]
+#[repr(transparent)]
+pub struct BlockTypes([&'static dyn BlockType<BlockData>; size_of::<BlockTypeId>()]);
 
 impl Index<BlockTypeId> for BlockTypes {
+
     type Output = &'static dyn BlockType<BlockData>;
+
     fn index(&self, i: BlockTypeId) -> &Self::Output {
-        &self.to[i as usize]
+        &self.0[i as usize]
     }
 }
+
+impl IndexMut<BlockTypeId> for BlockTypes {
+
+    fn index_mut(&mut self, i: BlockTypeId) -> &mut Self::Output {
+        &mut self.0[i as usize]
+    }
+}
+
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 pub struct Block {
@@ -108,10 +119,6 @@ impl<'a> BlockEnvironment<'a> {
         block
     }
 
-    pub fn add_block_type<S>(&mut self, id: BlockTypeId, block_type: &'static dyn BlockType<S>) {
-        self.block_types[id] = transmute(block_type);
-    }
-
     pub fn append_mesh(
         &self,
         (position, block): PositionedBlock,
@@ -121,7 +128,7 @@ impl<'a> BlockEnvironment<'a> {
         let block_type = self.block_types[block.block_type];
         block_type.append_mesh(
             block,
-            BlockDataAccessor::new(position, self.storage),
+            BlockDataAccessor::new(position, &self.storage),
             transform,
             mesh,
         )
