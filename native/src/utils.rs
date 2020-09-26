@@ -1,3 +1,5 @@
+use rand::random;
+use crate::blocks::environment::BlockEnvironment;
 use crate::blocks::storage::*;
 /*use crate::blocks::*;*/
 use chunkstorage::*;
@@ -7,19 +9,14 @@ use neon::prelude::*;
 use std::rc::Rc;
 use types::example::*;*/
 
-pub fn generate_random_chunk<'a>() -> ChunkBlockStorage<'a> {
-    todo!()
-    /*let mut chunk = ChunkBlockStorage::new();
-    for x in &mut chunk.blocks {
-        for y in x {
-            for z in y {
-                if random::<f32>() > 0.5 {
-                    *z = Block::cast(Block::new(Rc::new(ExampleBlockType), ExampleBlockData));
-                }
-            }
+pub fn generate_random_chunk<'a>(env: BlockEnvironment<'a>) -> ChunkBlockStorage<'a> {
+    let mut chunk = ChunkBlockStorage::new(env);
+    for x in (&mut chunk).into_iter() {
+        if random::<bool>() {
+            *x.1 = todo!(); // TODO: Whenever I can actually implement blocks
         }
     }
-    chunk*/
+    chunk
 }
 
 pub fn generate_random_mesh(location: Point3D<i64>, mut mesh: &mut crate::rendering::Mesh) {

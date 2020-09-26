@@ -1,9 +1,12 @@
+use std::mem::transmute;
+use std::cell::Cell;
 use std::ops::IndexMut;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use std::mem::size_of;
+use lazy_static::lazy_static;
 
 use std::ops::Index;
 
@@ -18,32 +21,10 @@ pub type Stress = u16;
 pub type BlockTypeId = u8;
 pub type BlockLocation = Point3D<i64>;
 pub type PositionedBlock = (BlockLocation, Block);
-pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
-pub struct BlockDataAccessor<'a, T> {
-    location: BlockLocation,
-    storage: &'a ExternalBlockDataStorage,
-    _marker: PhantomData<T>,
-}
-
-impl<'a, T> BlockDataAccessor<'a, T> {
-    pub fn access(&self) -> T {
-        unsafe {
-            std::mem::transmute_copy(&self.storage[&self.location])
-        }
-    }
-
-    pub fn new(location: BlockLocation, storage: &'a ExternalBlockDataStorage) -> Self {
-        BlockDataAccessor {
-            location,
-            storage,
-            _marker: PhantomData,
-        }
-    }
-}
 
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
-pub struct BlockTypes([&'static dyn BlockType<BlockData>; size_of::<BlockTypeId>()]);
+pub struct BlockTypes([&'static dyn BlockType<BlockData>; 2 ^ (8 * size_of::<BlockTypeId>())]);
 
 impl Index<BlockTypeId> for BlockTypes {
 
@@ -79,7 +60,7 @@ impl Block {
     }
 }
 
-pub trait BlockType<T>: Debug {
+pub trait BlockType<T>: Debug + Sync {
     fn new(&self, block: Block) -> T;
 
     /// Appends the block's mesh to the global Mesh.
@@ -89,59 +70,13 @@ pub trait BlockType<T>: Debug {
     fn append_mesh(
         &self,
         block: Block,
-        accessor: BlockDataAccessor<T>,
+        accessor: environment::BlockDataAccessor<T>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     );
 }
 
-#[derive(Clone, Debug)]
-pub struct BlockEnvironment<'a> {
-    storage: ExternalBlockDataStorage,
-    block_types: &'a BlockTypes,
-}
-
-impl<'a> BlockEnvironment<'a> {
-    pub fn create_at(
-        &mut self,
-        position: BlockLocation,
-        id: BlockTypeId,
-        rotation: Rotation,
-        stress: Stress,
-    ) -> Block {
-        let block = Block {
-            block_type: id,
-            rotation,
-            stress,
-        };
-        let data = self.block_types[id].new(block);
-        self.storage.insert(position, data);
-        block
-    }
-
-    pub fn append_mesh(
-        &self,
-        (position, block): PositionedBlock,
-        transform: Transform3D<f32>,
-        mesh: &mut Mesh,
-    ) {
-        let block_type = self.block_types[block.block_type];
-        block_type.append_mesh(
-            block,
-            BlockDataAccessor::new(position, &self.storage),
-            transform,
-            mesh,
-        )
-    }
-
-    pub fn new(block_types: &'a BlockTypes) -> Self {
-        BlockEnvironment {
-            storage: HashMap::new(),
-            block_types,
-        }
-    }
-}
-
+pub mod environment;
 pub mod default;
 pub mod storage;
 pub mod types;
@@ -153,4 +88,22 @@ macro_rules! assert_block_size {
             std::mem::size_of::<$t>() <= std::mem::size_of::<BlockData>()
         );
     };
+}
+
+lazy_static! {
+    pub static ref BLOCK_TYPES: [Option<&'static dyn BlockType<BlockData>>; 2 ^ (8 * size_of::<BlockTypeId>())] = [None; 2 ^ (8 * size_of::<BlockTypeId>())];
+}
+
+static currentId: Cell<BlockTypeId> = Cell::new(0);
+
+
+// Struct is for impls.
+pub struct Blocks;
+
+impl Blocks {
+    pub fn register<F, T: BlockType<U>, U>(f: F) -> BlockTypeId where F: FnOnce(BlockTypeId) -> T {
+        let id = currentId.get();
+        BLOCK_TYPES[id as usize] = Some(transmute::<_, &dyn BlockType<BlockData>>(&f(id))); // TODO: FINISH
+        currentId.replace(id + 1)
+    }
 }

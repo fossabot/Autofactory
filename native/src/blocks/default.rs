@@ -1,4 +1,5 @@
-use crate::blocks::*;
+use super::*;
+use environment::BlockDataAccessor;
 use crate::rendering::Mesh;
 
 pub struct DefaultBlockData;
@@ -9,7 +10,7 @@ pub trait DefaultBlock {
 
 impl<T> BlockType<DefaultBlockData> for T
 where
-    T: DefaultBlock + std::fmt::Debug,
+    T: DefaultBlock + Debug + Sync,
 {
     fn append_mesh(
         &self,

@@ -1,4 +1,5 @@
 use super::*;
+use environment::BlockEnvironment;
 use euclid::default::Point3D;
 use ref_clone::*;
 use ref_clone_derive::*;
