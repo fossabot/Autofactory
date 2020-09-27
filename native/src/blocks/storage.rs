@@ -27,16 +27,24 @@ pub trait BlockStorage {
     }
 }
 
-pub trait InternalEnvironmentBlockStorage<'a>: BlockStorage {
-    fn new(block_types: &'a BlockTypes) -> Self;
+pub trait InternalEnvironmentBlockStorage: BlockStorage {
+    fn new() -> Self;
 }
 
-pub trait ExternalEnvironmentBlockStorage<'a>: BlockStorage {
-    fn new(env: BlockEnvironment<'a>) -> Self;
+pub trait ExternalEnvironmentBlockStorage: BlockStorage {
+    fn new(env: BlockEnvironment) -> Self;
 }
 
 pub trait UniqueEnvironmentBlockStorage: BlockStorage {
-    fn get_env(&self) -> &BlockEnvironment;
+    fn get_env_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Ref<'a, BlockEnvironment, T>;
+
+    fn get_env(&self) -> &BlockEnvironment {
+        Ref::new(self).get_env_ref().as_ref()
+    }
+
+    fn get_env_mut(&mut self) -> &mut BlockEnvironment {
+        Ref::new(self).get_env_ref().as_mut()
+    }
 }
 
 pub trait UnboundedBlockStorage: BlockStorage {

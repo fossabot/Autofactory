@@ -1,6 +1,6 @@
 use super::*;
-use environment::BlockDataAccessor;
 use crate::rendering::Mesh;
+use environment::BlockDataAccessor;
 
 pub struct DefaultBlockData;
 

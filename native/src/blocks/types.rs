@@ -1,2 +1,2 @@
-pub mod vacuum;
 pub mod example;
+pub mod vacuum;

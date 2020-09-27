@@ -2,9 +2,9 @@ use super::*;
 use chunkstorage::*;
 /// Every i64 has units of chunk size
 #[RefAccessors]
-pub struct ChunkLeaf<'a> {
+pub struct ChunkLeaf {
     pub location: Point3D<i64>,
-    pub chunk: ChunkBlockStorage<'a>,
+    pub chunk: ChunkBlockStorage,
 }
 
 #[RefAccessors]
@@ -14,16 +14,16 @@ pub struct AirLeaf {
 }
 
 #[RefAccessors]
-pub struct Branch<'a> {
+pub struct Branch {
     /// Location of the center of the branch.
     pub location: Point3D<i64>,
     /// Each of the branches; the 0th index is the negative branch. The arrays proceed in order of `x`, `y`, and `z`.
-    pub trees: [[[Box<Node<'a>>; 2]; 2]; 2],
+    pub trees: [[[Box<Node>; 2]; 2]; 2],
     /// Size of 1 tree branch. This is a power of two.
     pub size: i64,
 }
 
-impl Branch<'_> {
+impl Branch {
     pub fn contains(&self, location: Point3D<i64>) -> bool {
         location
             .to_vector()
@@ -35,13 +35,13 @@ impl Branch<'_> {
 }
 
 #[RefAccessors]
-pub enum Node<'a> {
-    ChunkLeaf(ChunkLeaf<'a>),
+pub enum Node {
+    ChunkLeaf(ChunkLeaf),
     AirLeaf(AirLeaf),
-    Branch(Branch<'a>),
+    Branch(Branch),
 }
 
-impl Node<'_> {
+impl Node {
     fn contains(&self, location: Point3D<i64>) -> bool {
         match self {
             Node::AirLeaf(AirLeaf { .. }) => false,
@@ -103,12 +103,11 @@ impl Node<'_> {
 }
 
 #[RefAccessors]
-pub struct OctreeBlockStorage<'a> {
-    root: Node<'a>,
-    block_types: &'a BlockTypes,
+pub struct OctreeBlockStorage {
+    root: Node,
 }
 
-impl BlockStorage for OctreeBlockStorage<'_> {
+impl BlockStorage for OctreeBlockStorage {
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         location: Point3D<i64>,
@@ -117,14 +116,13 @@ impl BlockStorage for OctreeBlockStorage<'_> {
     }
 }
 
-impl<'a> InternalEnvironmentBlockStorage<'a> for OctreeBlockStorage<'a> {
-    fn new(block_types: &'a BlockTypes) -> Self {
+impl InternalEnvironmentBlockStorage for OctreeBlockStorage {
+    fn new() -> Self {
         OctreeBlockStorage {
             root: Node::ChunkLeaf(ChunkLeaf {
                 location: Point3D::new(0, 0, 0),
-                chunk: ChunkBlockStorage::new(BlockEnvironment::new(block_types)),
+                chunk: ChunkBlockStorage::new(BlockEnvironment::new()),
             }),
-            block_types,
         }
     }
 }

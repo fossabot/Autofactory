@@ -1,3 +1,4 @@
+use crate::blocks::types::vacuum::VacuumBlock;
 use crate::blocks::*;
 use crate::rendering::Mesh;
 
@@ -9,11 +10,11 @@ pub const CHUNK_SIZEI: i64 = CHUNK_SIZE as i64;
 
 #[RefAccessors]
 #[derive(Clone, Debug)]
-pub struct ChunkBlockStorage<'a> {
+pub struct ChunkBlockStorage {
     pub blocks: Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>,
-    pub env: BlockEnvironment<'a>,
+    pub env: BlockEnvironment,
 }
-impl BlockStorage for ChunkBlockStorage<'_> {
+impl BlockStorage for ChunkBlockStorage {
     fn get_opt_ref<'b, T: RefType>(
         self: Ref<'b, Self, T>,
         coords: BlockLocation,
@@ -36,14 +37,14 @@ impl BlockStorage for ChunkBlockStorage<'_> {
         }
     }
 }
-impl UniqueEnvironmentBlockStorage for ChunkBlockStorage<'_> {
-    fn get_env(&self) -> &BlockEnvironment<'_> {
-        &self.env
+impl UniqueEnvironmentBlockStorage for ChunkBlockStorage {
+    fn get_env_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Ref<'a, BlockEnvironment, T> {
+        self.to_wrapped().env
     }
 }
-impl<'a> ExternalEnvironmentBlockStorage<'a> for ChunkBlockStorage<'a> {
-    fn new(mut env: BlockEnvironment<'a>) -> Self {
-        let arr =                 array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), 0, Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
+    fn new(mut env: BlockEnvironment) -> Self {
+        let arr = array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), &*VacuumBlock, Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
         ChunkBlockStorage {
             env,
             blocks: Box::new(arr),
@@ -51,23 +52,26 @@ impl<'a> ExternalEnvironmentBlockStorage<'a> for ChunkBlockStorage<'a> {
     }
 }
 
-impl ChunkBlockStorage<'_> {
+impl ChunkBlockStorage {
     pub fn append_mesh(&self, transform: Transform3D<f32>, mesh: &mut Mesh) {
         self.into_iter().for_each(|a| {
-            self.env
-                .append_mesh((a.0, *a.1), transform.pre_translate(a.0.to_vector().to_f32()), mesh);
+            self.env.append_mesh(
+                (a.0, *a.1),
+                transform.pre_translate(a.0.to_vector().to_f32()),
+                mesh,
+            );
         });
     }
 }
 
-pub struct IntoIter<'a> {
+pub struct IntoIter {
     x: i64,
     y: i64,
     z: i64,
-    chunk: ChunkBlockStorage<'a>,
+    chunk: ChunkBlockStorage,
 }
 
-impl Iterator for IntoIter<'_> {
+impl Iterator for IntoIter {
     type Item = (BlockLocation, Block);
     fn next(&mut self) -> Option<Self::Item> {
         self.x += 1;
@@ -84,9 +88,9 @@ impl Iterator for IntoIter<'_> {
     }
 }
 
-impl<'a> IntoIterator for ChunkBlockStorage<'a> {
+impl IntoIterator for ChunkBlockStorage {
     type Item = (BlockLocation, Block);
-    type IntoIter = IntoIter<'a>;
+    type IntoIter = IntoIter;
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
             x: -1,
@@ -123,13 +127,15 @@ impl<'a, T: RefType> RefIntoIter<'a, T> {
         if self.x >= CHUNK_SIZEI {
             None
         } else {
-            Some((Point3D::new(self.x, self.y, self.z), self.zi.next().unwrap()))
+            Some((
+                Point3D::new(self.x, self.y, self.z),
+                self.zi.next().unwrap(),
+            ))
         }
     }
 
-    fn new(chunk: Ref<'a, ChunkBlockStorage<'_>, T>) -> Self {
-        let chunk = chunk.to_wrapped();
-        let mut xi = chunk.blocks.deref_ref().into_iter();
+    fn new(blocks: Ref<'a, Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>, T>) -> Self {
+        let mut xi = blocks.deref_ref().into_iter();
         let mut yi = xi.next().unwrap().into_iter();
         let zi = yi.next().unwrap().into_iter();
         RefIntoIter {
@@ -157,18 +163,26 @@ impl<'a> Iterator for RefIntoIter<'a, Unique> {
     }
 }
 
-impl<'a, 'b> IntoIterator for &'a ChunkBlockStorage<'b> {
+impl<'a> IntoIterator for &'a ChunkBlockStorage {
     type Item = (BlockLocation, &'a Block);
     type IntoIter = RefIntoIter<'a, Shared>;
     fn into_iter(self) -> Self::IntoIter {
-        RefIntoIter::new(Ref::new(self))
+        RefIntoIter::new(Ref::new(&self.blocks))
     }
 }
 
-impl<'a, 'b> IntoIterator for &'a mut ChunkBlockStorage<'b> {
+impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
     type Item = (BlockLocation, &'a mut Block);
     type IntoIter = RefIntoIter<'a, Unique>;
     fn into_iter(self) -> Self::IntoIter {
-        RefIntoIter::new(Ref::new(self))
+        RefIntoIter::new(Ref::new(&mut self.blocks))
+    }
+}
+
+impl ChunkBlockStorage {
+    pub fn into_iter_mut_with_env<'a>(
+        &'a mut self,
+    ) -> (RefIntoIter<'a, Unique>, &'a mut BlockEnvironment) {
+        (RefIntoIter::new(Ref::new(&mut self.blocks)), &mut self.env)
     }
 }

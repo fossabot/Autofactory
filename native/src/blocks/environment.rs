@@ -9,9 +9,7 @@ pub struct BlockDataAccessor<'a, T> {
 
 impl<'a, T> BlockDataAccessor<'a, T> {
     pub fn access(&self) -> T {
-        unsafe {
-            std::mem::transmute_copy(&self.storage[&self.location])
-        }
+        unsafe { std::mem::transmute_copy(&self.storage[&self.location]) }
     }
 
     pub fn new(location: BlockLocation, storage: &'a ExternalBlockDataStorage) -> Self {
@@ -23,27 +21,26 @@ impl<'a, T> BlockDataAccessor<'a, T> {
     }
 }
 
-
 #[derive(Clone, Debug)]
-pub struct BlockEnvironment<'a> {
+pub struct BlockEnvironment {
     storage: ExternalBlockDataStorage,
-    block_types: &'a BlockTypes,
 }
 
-impl<'a> BlockEnvironment<'a> {
-    pub fn create_at(
+impl BlockEnvironment {
+    pub fn create_at<T>(
         &mut self,
         position: BlockLocation,
-        id: BlockTypeId,
+        ty: &dyn InitializableBlockType<T>,
         rotation: Rotation,
         stress: Stress,
     ) -> Block {
+        let id = ty.id();
         let block = Block {
             block_type: id,
             rotation,
             stress,
         };
-        let data = self.block_types[id].new(block);
+        let data = BlockTypes[id].new(block);
         self.storage.insert(position, data);
         block
     }
@@ -54,7 +51,7 @@ impl<'a> BlockEnvironment<'a> {
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     ) {
-        let block_type = self.block_types[block.block_type];
+        let block_type = &BlockTypes[block.block_type];
         block_type.append_mesh(
             block,
             BlockDataAccessor::new(position, &self.storage),
@@ -63,10 +60,9 @@ impl<'a> BlockEnvironment<'a> {
         )
     }
 
-    pub fn new(block_types: &'a BlockTypes) -> Self {
+    pub fn new() -> Self {
         BlockEnvironment {
             storage: HashMap::new(),
-            block_types,
         }
     }
 }

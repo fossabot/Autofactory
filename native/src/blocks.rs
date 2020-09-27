@@ -1,12 +1,11 @@
-use std::mem::transmute;
-use std::cell::Cell;
-use std::ops::IndexMut;
+use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use lazy_static::lazy_static;
+use std::mem::transmute;
+use std::sync::Mutex;
 
 use std::ops::Index;
 
@@ -21,27 +20,6 @@ pub type Stress = u16;
 pub type BlockTypeId = u8;
 pub type BlockLocation = Point3D<i64>;
 pub type PositionedBlock = (BlockLocation, Block);
-
-#[derive(Copy, Clone, Debug)]
-#[repr(transparent)]
-pub struct BlockTypes([&'static dyn BlockType<BlockData>; 2 ^ (8 * size_of::<BlockTypeId>())]);
-
-impl Index<BlockTypeId> for BlockTypes {
-
-    type Output = &'static dyn BlockType<BlockData>;
-
-    fn index(&self, i: BlockTypeId) -> &Self::Output {
-        &self.0[i as usize]
-    }
-}
-
-impl IndexMut<BlockTypeId> for BlockTypes {
-
-    fn index_mut(&mut self, i: BlockTypeId) -> &mut Self::Output {
-        &mut self.0[i as usize]
-    }
-}
-
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
 pub struct Block {
@@ -76,8 +54,12 @@ pub trait BlockType<T>: Debug + Sync {
     );
 }
 
-pub mod environment;
+pub trait InitializableBlockType<T>: BlockType<T> {
+    fn id(&self) -> u8;
+}
+
 pub mod default;
+pub mod environment;
 pub mod storage;
 pub mod types;
 
@@ -91,19 +73,42 @@ macro_rules! assert_block_size {
 }
 
 lazy_static! {
-    pub static ref BLOCK_TYPES: [Option<&'static dyn BlockType<BlockData>>; 2 ^ (8 * size_of::<BlockTypeId>())] = [None; 2 ^ (8 * size_of::<BlockTypeId>())];
+    static ref BLOCK_TYPES: Mutex<
+        [Option<&'static dyn InitializableBlockType<BlockData>>;
+            1 << (8 * size_of::<BlockTypeId>())],
+    > = Mutex::new([None; 1 << (8 * size_of::<BlockTypeId>())]);
+    static ref CURRENT_ID: Mutex<BlockTypeId> = Mutex::new(0);
 }
 
-static currentId: Cell<BlockTypeId> = Cell::new(0);
-
-
-// Struct is for impls.
+// Struct is for impls, and does not contain any data.
 pub struct Blocks;
 
 impl Blocks {
-    pub fn register<F, T: BlockType<U>, U>(f: F) -> BlockTypeId where F: FnOnce(BlockTypeId) -> T {
-        let id = currentId.get();
-        BLOCK_TYPES[id as usize] = Some(transmute::<_, &dyn BlockType<BlockData>>(&f(id))); // TODO: FINISH
-        currentId.replace(id + 1)
+    pub fn register<F, T: InitializableBlockType<U>, U>(f: F) -> T
+    where
+        F: FnOnce(BlockTypeId) -> T,
+    {
+        let mut guard = CURRENT_ID.lock().unwrap();
+        let mut btguard = BLOCK_TYPES.lock().unwrap();
+        let id = *guard;
+        let res = f(id);
+        unsafe {
+            (*btguard)[id as usize] = Some(transmute::<_, &dyn InitializableBlockType<BlockData>>(
+                &res as &dyn InitializableBlockType<U>,
+            ));
+        }
+        *guard = id + 1;
+        res
+    }
+}
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Default)]
+pub struct BlockTypes;
+
+impl Index<BlockTypeId> for BlockTypes {
+    type Output = dyn InitializableBlockType<BlockData>;
+
+    fn index(&self, i: BlockTypeId) -> &Self::Output {
+        BLOCK_TYPES.lock().unwrap()[i as usize].unwrap()
     }
 }
