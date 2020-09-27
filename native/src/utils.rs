@@ -11,11 +11,9 @@ pub fn generate_random_chunk(env: BlockEnvironment) -> ChunkBlockStorage {
     let (iter, env) = (&mut chunk).into_iter_mut_with_env();
     for x in iter {
         if random::<bool>() {
-            println!("Making a chunk. {:?}", x.0);
             *x.1 = env.create_at(x.0, &*ExampleBlock, Default::default(), Default::default());
         }
     }
-    println!("Ended");
     chunk
 }
 

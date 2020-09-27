@@ -66,7 +66,7 @@ onmessage = async (startupMessage) => {
     {
         const material = new THREE.MeshPhongMaterial({ color: 0x33618e });
         const geometry = new THREE.BufferGeometry();
-        const mesh = require('../native/').example_chunk_mesh(3);
+        const mesh = require('../native/').example_chunk_mesh(2);
         const positions = new Float32Array(mesh.positions.buffer);
         const normals = new Float32Array(mesh.normals.buffer);
 

@@ -5,7 +5,7 @@ use storage::*;
 use types::*;
 use euclid::default::*;
 
-// #[test]
+#[test]
 fn print_vertices() {
     let mut env = BlockEnvironment::new();
     let block = env.create_at(Point3D::new(0, 0, 0), &*example::ExampleBlock, Default::default(), Default::default());
@@ -14,19 +14,19 @@ fn print_vertices() {
     println!("{:#?}", mesh);
 }
 
-// #[test]
+#[test]
 fn print_chunk() {
     let chunk = ChunkBlockStorage::new(BlockEnvironment::new());
     chunk.into_iter().for_each(|x| println!("{:?}", x));
 }
 
-// #[test]
+#[test]
 fn gen_chunk() {
     let chunk = crate::utils::generate_random_chunk(BlockEnvironment::new());
     println!("{:#?}", chunk);
 }
 
-// #[test]
+#[test]
 fn gen_vertices() {
     let chunk = crate::utils::generate_random_chunk(BlockEnvironment::new());
     let mut mesh = crate::rendering::Mesh::empty();
@@ -34,7 +34,7 @@ fn gen_vertices() {
     println!("{:?}", mesh);
 }
 
-// #[test]
+#[test]
 fn gen_random_chunk() {
     let mut mesh = crate::rendering::Mesh::empty();
     let size = 0;
@@ -50,12 +50,4 @@ fn gen_random_chunk() {
         }
     }
     println!("{:?}", mesh);
-}
-
-#[test]
-fn test() {
-    // panic!("RIP Code 2020-2020. Died of programmer being fed up with Rust.",);
-    for x in (&ChunkBlockStorage::new(BlockEnvironment::new())).into_iter() {
-        println!("{:?}", x);
-    }
 }

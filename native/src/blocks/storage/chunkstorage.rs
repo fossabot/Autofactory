@@ -70,7 +70,7 @@ pub struct IntoIter {
     z: i64,
     chunk: ChunkBlockStorage,
 }
-
+// TODO: FIX THIS SO ITS CONSISTENT
 impl Iterator for IntoIter {
     type Item = (BlockLocation, Block);
     fn next(&mut self) -> Option<Self::Item> {
@@ -113,35 +113,24 @@ pub struct RefIntoIter<'a, T: RefType> {
 // TODO: IMPLEMENT SIZE_HINT
 impl<'a, T: RefType> RefIntoIter<'a, T> {
     fn step(self: &mut Self) -> Option<(BlockLocation, Ref<'a, Block, T>)> {
-        println!("{} {} {}", self.x, self.y, self.z);
         self.z += 1;
-        println!("Incremented Z");
         if self.z >= CHUNK_SIZEI {
             self.z = 0;
             self.y += 1;
-            println!("Incremented Y");
-            let next = self.yi.next();
-            println!("Next: {:?}", next);
-            let next = next.unwrap();
-            self.zi = next.into_iter();
-            println!("After incrementation");
+            if self.y >= CHUNK_SIZEI {
+                self.y = 0;
+                self.x += 1;
+                if self.x >= CHUNK_SIZEI {
+                    return None;
+                }
+                self.yi = self.xi.next().unwrap().into_iter();
+            }
+            self.zi = self.yi.next().unwrap().into_iter();
         }
-        println!("Beforest");
-        if self.y >= CHUNK_SIZEI {
-            self.y = 0;
-            self.x += 1;
-            println!("Before");
-            self.yi = self.xi.next().unwrap().into_iter();
-            println!("After");
-        }
-        if self.x >= CHUNK_SIZEI {
-            None
-        } else {
-            Some((
-                Point3D::new(self.x, self.y, self.z),
-                self.zi.next().unwrap(),
-            ))
-        }
+        Some((
+            Point3D::new(self.x, self.y, self.z),
+            self.zi.next().unwrap(),
+        ))
     }
 
     fn new(blocks: Ref<'a, Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>, T>) -> Self {
