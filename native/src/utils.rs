@@ -1,14 +1,14 @@
 use crate::blocks::environment::BlockEnvironment;
 use crate::blocks::storage::*;
 use crate::blocks::types::example::ExampleBlock;
-use rand::random;
 use chunkstorage::*;
 use euclid::default::Point3D;
 use neon::prelude::*;
+use rand::random;
 
 pub fn generate_random_chunk(env: BlockEnvironment) -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new(env);
-    let (iter, env) = (&mut chunk).into_iter_mut_with_env();
+    let (iter, env) = (&mut chunk).iter_mut_with_env();
     for x in iter {
         if random::<bool>() {
             *x.1 = env.create_at(x.0, &*ExampleBlock, Default::default(), Default::default());

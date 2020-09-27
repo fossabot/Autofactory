@@ -4,7 +4,6 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::mem::transmute;
 use std::sync::Mutex;
 
 use std::ops::Index;
@@ -39,7 +38,7 @@ impl Block {
 }
 
 pub trait BlockType<T>: Debug + Sync {
-    fn new(&self, block: Block) -> T;
+    fn create(&self, block: Block) -> T;
 
     /// Appends the block's mesh to the global Mesh.
     ///
@@ -93,9 +92,10 @@ impl Blocks {
         let id = *guard;
         let res = f(id);
         unsafe {
-            (*btguard)[id as usize] = Some(transmute::<_, &dyn InitializableBlockType<BlockData>>(
-                &res as &dyn InitializableBlockType<U>,
-            ));
+            (*btguard)[id as usize] = Some(
+                &*(&res as &dyn InitializableBlockType<U> as *const dyn InitializableBlockType<U>
+                    as *const dyn InitializableBlockType<BlockData>),
+            );
         }
         *guard = id + 1;
         res
@@ -109,6 +109,9 @@ impl Index<BlockTypeId> for BlockTypes {
     type Output = dyn InitializableBlockType<BlockData>;
 
     fn index(&self, i: BlockTypeId) -> &Self::Output {
-        BLOCK_TYPES.lock().expect("Could not get a lock on BLOCK_TYPES.")[i as usize].expect("Invalid Block Type.")
+        BLOCK_TYPES
+            .lock()
+            .expect("Could not get a lock on BLOCK_TYPES.")[i as usize]
+            .expect("Invalid Block Type.")
     }
 }

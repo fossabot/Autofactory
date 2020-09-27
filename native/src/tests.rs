@@ -1,16 +1,25 @@
-use environment::BlockEnvironment;
 use crate::blocks::*;
+use environment::BlockEnvironment;
+use euclid::default::*;
 use storage::chunkstorage::*;
 use storage::*;
 use types::*;
-use euclid::default::*;
 
 #[test]
 fn print_vertices() {
     let mut env = BlockEnvironment::new();
-    let block = env.create_at(Point3D::new(0, 0, 0), &*example::ExampleBlock, Default::default(), Default::default());
+    let block = env.create_at(
+        Point3D::new(0, 0, 0),
+        &*example::ExampleBlock,
+        Default::default(),
+        Default::default(),
+    );
     let mut mesh = crate::rendering::Mesh::empty();
-    env.append_mesh((Point3D::new(0, 0, 0), block), Default::default(), &mut mesh);
+    env.append_mesh(
+        (Point3D::new(0, 0, 0), block),
+        Default::default(),
+        &mut mesh,
+    );
     println!("{:#?}", mesh);
 }
 

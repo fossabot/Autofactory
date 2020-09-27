@@ -31,7 +31,7 @@ where
             mesh.normals.push(*normal);
         }
     }
-    fn new(&self, _: Block) -> DefaultBlockData {
+    fn create(&self, _: Block) -> DefaultBlockData {
         DefaultBlockData
     }
 }

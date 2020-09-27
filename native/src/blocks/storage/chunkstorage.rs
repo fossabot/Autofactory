@@ -15,6 +15,7 @@ pub struct ChunkBlockStorage {
     pub env: BlockEnvironment,
 }
 impl BlockStorage for ChunkBlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_ref<'b, T: RefType>(
         self: Ref<'b, Self, T>,
         coords: BlockLocation,
@@ -38,6 +39,7 @@ impl BlockStorage for ChunkBlockStorage {
     }
 }
 impl UniqueEnvironmentBlockStorage for ChunkBlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_env_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Ref<'a, BlockEnvironment, T> {
         self.to_wrapped().env
     }
@@ -70,21 +72,21 @@ pub struct IntoIter {
     z: i64,
     chunk: ChunkBlockStorage,
 }
-// TODO: FIX THIS SO ITS CONSISTENT
+
 impl Iterator for IntoIter {
     type Item = (BlockLocation, Block);
     fn next(&mut self) -> Option<Self::Item> {
-        self.x += 1;
-        if self.x >= CHUNK_SIZEI {
-            self.x = 0;
+        self.z += 1;
+        if self.z >= CHUNK_SIZEI {
+            self.z = 0;
             self.y += 1;
         }
         if self.y >= CHUNK_SIZEI {
             self.y = 0;
-            self.z += 1;
+            self.x += 1;
         }
         let point = Point3D::new(self.x, self.y, self.z);
-        self.chunk.get_opt(point).map(|x| (point, x.clone()))
+        self.chunk.get_opt(point).map(|a| (point, *a))
     }
 }
 
@@ -93,9 +95,9 @@ impl IntoIterator for ChunkBlockStorage {
     type IntoIter = IntoIter;
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
-            x: -1,
+            x: 0,
             y: 0,
-            z: 0,
+            z: -1,
             chunk: self,
         }
     }
@@ -110,9 +112,8 @@ pub struct RefIntoIter<'a, T: RefType> {
     y: i64,
     z: i64,
 }
-// TODO: IMPLEMENT SIZE_HINT
 impl<'a, T: RefType> RefIntoIter<'a, T> {
-    fn step(self: &mut Self) -> Option<(BlockLocation, Ref<'a, Block, T>)> {
+    fn step(&mut self) -> Option<(BlockLocation, Ref<'a, Block, T>)> {
         self.z += 1;
         if self.z >= CHUNK_SIZEI {
             self.z = 0;
@@ -146,6 +147,15 @@ impl<'a, T: RefType> RefIntoIter<'a, T> {
             z: -1,
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = CHUNK_SIZEI * CHUNK_SIZEI * CHUNK_SIZEI
+            - self.z
+            - self.y * CHUNK_SIZEI
+            - self.x * CHUNK_SIZEI * CHUNK_SIZEI
+            - 1;
+        (len as usize, Some(len as usize))
+    }
 }
 
 impl<'a> Iterator for RefIntoIter<'a, Shared> {
@@ -153,14 +163,24 @@ impl<'a> Iterator for RefIntoIter<'a, Shared> {
     fn next(&mut self) -> Option<Self::Item> {
         RefIntoIter::step(self).map(|x| (x.0, x.1.as_ref()))
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        RefIntoIter::size_hint(self)
+    }
 }
+impl<'a> ExactSizeIterator for RefIntoIter<'a, Shared> {}
 
 impl<'a> Iterator for RefIntoIter<'a, Unique> {
     type Item = (BlockLocation, &'a mut Block);
     fn next(&mut self) -> Option<Self::Item> {
         RefIntoIter::step(self).map(|mut x| (x.0, x.1.as_mut()))
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        RefIntoIter::size_hint(self)
+    }
 }
+impl<'a> ExactSizeIterator for RefIntoIter<'a, Unique> {}
 
 impl<'a> IntoIterator for &'a ChunkBlockStorage {
     type Item = (BlockLocation, &'a Block);
@@ -179,9 +199,7 @@ impl<'a> IntoIterator for &'a mut ChunkBlockStorage {
 }
 
 impl ChunkBlockStorage {
-    pub fn into_iter_mut_with_env<'a>(
-        &'a mut self,
-    ) -> (RefIntoIter<'a, Unique>, &'a mut BlockEnvironment) {
+    pub fn iter_mut_with_env<'a>(&'a mut self) -> (RefIntoIter<'a, Unique>, &mut BlockEnvironment) {
         (RefIntoIter::new(Ref::new(&mut self.blocks)), &mut self.env)
     }
 }

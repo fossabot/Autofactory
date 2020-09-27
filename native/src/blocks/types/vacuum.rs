@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Vacuum(u8);
 lazy_static! {
-    pub static ref VacuumBlock: Vacuum = Blocks::register(|x| Vacuum(x));
+    pub static ref VacuumBlock: Vacuum = Blocks::register(Vacuum);
 }
 
 impl InitializableBlockType<DefaultBlockData> for Vacuum {

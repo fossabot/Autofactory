@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 pub struct Example(u8);
 
 lazy_static! {
-    pub static ref ExampleBlock: Example = Blocks::register(|x| Example(x));
+    pub static ref ExampleBlock: Example = Blocks::register(Example);
 }
 
 impl InitializableBlockType<DefaultBlockData> for Example {

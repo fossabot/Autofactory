@@ -35,6 +35,7 @@ pub trait ExternalEnvironmentBlockStorage: BlockStorage {
     fn new(env: BlockEnvironment) -> Self;
 }
 
+#[allow(clippy::needless_lifetimes)]
 pub trait UniqueEnvironmentBlockStorage: BlockStorage {
     fn get_env_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Ref<'a, BlockEnvironment, T>;
 
