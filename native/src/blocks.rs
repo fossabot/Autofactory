@@ -109,6 +109,6 @@ impl Index<BlockTypeId> for BlockTypes {
     type Output = dyn InitializableBlockType<BlockData>;
 
     fn index(&self, i: BlockTypeId) -> &Self::Output {
-        BLOCK_TYPES.lock().unwrap()[i as usize].unwrap()
+        BLOCK_TYPES.lock().expect("Could not get a lock on BLOCK_TYPES.")[i as usize].expect("Invalid Block Type.")
     }
 }

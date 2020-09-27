@@ -113,16 +113,26 @@ pub struct RefIntoIter<'a, T: RefType> {
 // TODO: IMPLEMENT SIZE_HINT
 impl<'a, T: RefType> RefIntoIter<'a, T> {
     fn step(self: &mut Self) -> Option<(BlockLocation, Ref<'a, Block, T>)> {
+        println!("{} {} {}", self.x, self.y, self.z);
         self.z += 1;
+        println!("Incremented Z");
         if self.z >= CHUNK_SIZEI {
             self.z = 0;
             self.y += 1;
-            self.zi = self.yi.next().unwrap().into_iter();
+            println!("Incremented Y");
+            let next = self.yi.next();
+            println!("Next: {:?}", next);
+            let next = next.unwrap();
+            self.zi = next.into_iter();
+            println!("After incrementation");
         }
+        println!("Beforest");
         if self.y >= CHUNK_SIZEI {
             self.y = 0;
             self.x += 1;
+            println!("Before");
             self.yi = self.xi.next().unwrap().into_iter();
+            println!("After");
         }
         if self.x >= CHUNK_SIZEI {
             None
@@ -142,9 +152,9 @@ impl<'a, T: RefType> RefIntoIter<'a, T> {
             xi,
             yi,
             zi,
-            x: -1,
+            x: 0,
             y: 0,
-            z: 0,
+            z: -1,
         }
     }
 }

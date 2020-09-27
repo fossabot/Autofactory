@@ -2,23 +2,20 @@ use crate::blocks::environment::BlockEnvironment;
 use crate::blocks::storage::*;
 use crate::blocks::types::example::ExampleBlock;
 use rand::random;
-/*use crate::blocks::*;*/
 use chunkstorage::*;
 use euclid::default::Point3D;
 use neon::prelude::*;
-/*use rand::prelude::*;
-use std::rc::Rc;
-use types::example::*;*/
 
 pub fn generate_random_chunk(env: BlockEnvironment) -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new(env);
     let (iter, env) = (&mut chunk).into_iter_mut_with_env();
     for x in iter {
         if random::<bool>() {
+            println!("Making a chunk. {:?}", x.0);
             *x.1 = env.create_at(x.0, &*ExampleBlock, Default::default(), Default::default());
-            // TODO: Whenever I can actually implement blocks
         }
     }
+    println!("Ended");
     chunk
 }
 
