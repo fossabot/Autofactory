@@ -10,7 +10,7 @@ fn print_vertices() {
     let mut env = BlockEnvironment::new();
     let block = env.create_at(
         Point3D::new(0, 0, 0),
-        &*example::ExampleBlock,
+        example::Example.into(),
         Default::default(),
         Default::default(),
     );

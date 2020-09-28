@@ -1,23 +1,22 @@
 use super::*;
+use types::BlockTypes;
 use std::ops::IndexMut;
 
 pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
-pub struct BlockDataAccessor<'a, T> {
+pub struct BlockDataAccessor<'a> { // TODO: FIX AND REPLACE BLOCKTYPE
     location: BlockLocation,
-    storage: &'a ExternalBlockDataStorage,
-    _marker: PhantomData<T>,
+    storage: &'a BlockEnvironment,
 }
 
-impl<'a, T> BlockDataAccessor<'a, T> {
-    pub fn access(&self) -> T {
-        unsafe { std::mem::transmute_copy(&self.storage[&self.location]) }
+impl<'a> BlockDataAccessor<'a> {
+    pub fn access(&self) -> BlockData {
+        self.storage[self.location]
     }
 
-    pub fn new(location: BlockLocation, storage: &'a ExternalBlockDataStorage) -> Self {
+    pub fn new(location: BlockLocation, storage: &'a BlockEnvironment) -> Self {
         BlockDataAccessor {
             location,
             storage,
-            _marker: PhantomData,
         }
     }
 }
@@ -28,21 +27,19 @@ pub struct BlockEnvironment {
 }
 
 impl BlockEnvironment {
-    pub fn create_at<T>(
+    pub fn create_at(
         &mut self,
         position: BlockLocation,
-        ty: &dyn InitializableBlockType<T>,
+        ty: BlockTypes,
         rotation: Rotation,
         stress: Stress,
     ) -> Block {
-        let id = ty.id();
         let block = Block {
-            block_type: id,
+            block_type: ty,
             rotation,
             stress,
         };
-        let data = BlockTypes[id].create(block);
-        self.storage.insert(position, data);
+        ty.create(block, BlockDataAccessor::new(position, &self));
         block
     }
 
@@ -60,13 +57,12 @@ impl BlockEnvironment {
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     ) {
-        let block_type = &BlockTypes[block.block_type];
-        block_type.append_mesh(
+        block.block_type.append_mesh(
             block,
-            BlockDataAccessor::new(position, &self.storage),
+            BlockDataAccessor::new(position, &self),
             transform,
             mesh,
-        )
+        );
     }
 
     pub fn new() -> Self {

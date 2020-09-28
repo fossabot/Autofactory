@@ -1,24 +1,13 @@
 #![allow(non_upper_case_globals)]
 
 use crate::blocks::*;
-use default::*;
-use lazy_static::lazy_static;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Vacuum(u8);
-lazy_static! {
-    pub static ref VacuumBlock: Vacuum = Blocks::register(Vacuum);
-}
-
-impl InitializableBlockType<DefaultBlockData> for Vacuum {
-    fn id(&self) -> u8 {
-        self.0
-    }
-}
+pub struct Vacuum;
 
 static VERTICES: (Vec<Vertex>, Vec<u32>) = (vec![], vec![]);
 
-impl DefaultBlock for Vacuum {
+impl SimpleBlockType for Vacuum {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>) {
         &VERTICES
     }
