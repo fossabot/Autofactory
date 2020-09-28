@@ -20,20 +20,12 @@ pub trait BlockType: Debug {
 }
 
 pub trait SimpleBlockType {
-    /// Appends the block's mesh to the global Mesh.
-    ///
-    /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
-    /// The translation is applied first, then the rotation.
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>);
 }
 
 impl<T> BlockType for T where T: SimpleBlockType + Debug {
     fn create(&self, _: Block, _: BlockDataAccessor) {}
 
-    /// Appends the block's mesh to the global Mesh.
-    ///
-    /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
-    /// The translation is applied first, then the rotation.
     fn append_mesh(
         &self,
         _: Block,
