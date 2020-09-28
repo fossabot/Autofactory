@@ -1,6 +1,6 @@
 use super::*;
 use enum_dispatch::enum_dispatch;
-use environment::*;
+use std::fmt::Debug;
 
 #[enum_dispatch(BlockTypes)]
 pub trait BlockType: Debug {

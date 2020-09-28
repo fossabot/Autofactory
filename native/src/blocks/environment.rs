@@ -1,4 +1,6 @@
 use super::*;
+use std::collections::HashMap;
+use std::ops::Index;
 use std::ops::IndexMut;
 use types::BlockTypes;
 

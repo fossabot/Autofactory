@@ -1,11 +1,6 @@
-use std::collections::HashMap;
-use std::fmt::Debug;
 use types::BlockTypes;
 
-use std::ops::Index;
-
 use crate::rendering::*;
-use blocktype::*;
 use euclid::default::*;
 
 pub mod geometry;
@@ -33,11 +28,6 @@ impl Block {
     }
 }
 
-pub mod blocktype;
-pub mod environment;
-pub mod storage;
-pub mod types;
-
 #[macro_export]
 macro_rules! assert_block_size {
     ($t:ty) => {
@@ -46,3 +36,10 @@ macro_rules! assert_block_size {
         );
     };
 }
+
+pub mod environment;
+use environment::*;
+pub mod blocktype;
+use blocktype::*;
+pub mod storage;
+pub mod types;

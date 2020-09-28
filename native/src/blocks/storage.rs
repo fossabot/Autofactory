@@ -1,6 +1,4 @@
 use super::*;
-use environment::BlockEnvironment;
-use euclid::default::Point3D;
 use ref_clone::*;
 use ref_clone_derive::*;
 
@@ -35,7 +33,7 @@ pub trait ExternalEnvironmentBlockStorage: BlockStorage {
     fn new(env: BlockEnvironment) -> Self;
 }
 
-#[allow(clippy::needless_lifetimes)]
+#[allow(clippy::needless_lifetimes)] // Lifetimes are needed.
 pub trait UniqueEnvironmentBlockStorage: BlockStorage {
     fn get_env_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Ref<'a, BlockEnvironment, T>;
 

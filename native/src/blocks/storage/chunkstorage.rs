@@ -1,6 +1,5 @@
 use crate::blocks::*;
 use crate::rendering::Mesh;
-use types::vacuum::*;
 
 use array_macro::array;
 use storage::*;
@@ -46,7 +45,7 @@ impl UniqueEnvironmentBlockStorage for ChunkBlockStorage {
 }
 impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
     fn new(mut env: BlockEnvironment) -> Self {
-        let arr = array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), Vacuum.into(), Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+        let arr = array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), Default::default(), Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
         ChunkBlockStorage {
             env,
             blocks: Box::new(arr),

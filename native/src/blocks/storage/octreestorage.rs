@@ -42,40 +42,18 @@ pub enum Node {
 }
 
 impl Node {
-    fn contains(&self, location: Point3D<i64>) -> bool {
-        match self {
-            Node::AirLeaf(AirLeaf { .. }) => false,
-            Node::ChunkLeaf(ChunkLeaf {
-                location: chunk_location,
-                ..
-            }) => (location - *chunk_location)
-                .to_array()
-                .iter()
-                .all(|x| *x >= 0 && *x < CHUNK_SIZEI),
-            Node::Branch(Branch {
-                size,
-                location: branch_location,
-                ..
-            }) => (location - *branch_location)
-                .abs()
-                .to_array()
-                .iter()
-                .all(|x| x < size),
-        }
-    }
-
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
-        coords: Point3D<i64>,
+        pos: Point3D<i64>,
     ) -> Option<Ref<'a, Block, T>> {
         match self.to_wrapped() {
             NodeRef::AirLeaf(_) => None,
-            NodeRef::ChunkLeaf(clr) => {
-                let ChunkLeafRef { chunk, location } = clr.to_wrapped();
-                chunk.get_opt_ref(coords - location.to_vector())
+            NodeRef::ChunkLeaf(cl) => {
+                let ChunkLeafRef { chunk, location } = cl.to_wrapped();
+                chunk.get_opt_ref(pos - location.to_vector())
             }
             NodeRef::Branch(branch) => {
-                let location = coords - branch.location.to_vector();
+                let location = pos - branch.location.to_vector();
                 if branch.contains(location) {
                     let trees = branch.to_wrapped().trees;
                     let x = if location.x < 0 {
@@ -100,6 +78,22 @@ impl Node {
             }
         }
     }
+
+    /// If this returns false, then a Branch wrapper should be created around the Octree.
+    fn should_descend(&self, pos: Point3D<i64>) -> bool {
+        match self {
+            Node::AirLeaf(AirLeaf { size, location }) => {
+                (pos - *location).to_array().iter().all(|x| x < size)
+            }
+            Node::ChunkLeaf(ChunkLeaf { location, .. }) => (pos - *location)
+                .to_array()
+                .iter()
+                .all(|x| *x >= 0 && *x < CHUNK_SIZEI),
+            Node::Branch(Branch { size, location, .. }) => {
+                (pos - *location).abs().to_array().iter().all(|x| x < size)
+            }
+        }
+    }
 }
 
 #[RefAccessors]
@@ -110,19 +104,25 @@ pub struct OctreeBlockStorage {
 impl BlockStorage for OctreeBlockStorage {
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
-        location: Point3D<i64>,
+        pos: Point3D<i64>,
     ) -> Option<Ref<'a, Block, T>> {
-        self.to_wrapped().root.get_opt_ref(location)
+        self.to_wrapped().root.get_opt_ref(pos)
     }
 }
 
 impl InternalEnvironmentBlockStorage for OctreeBlockStorage {
     fn new() -> Self {
         OctreeBlockStorage {
-            root: Node::ChunkLeaf(ChunkLeaf {
+            root: Node::AirLeaf(AirLeaf {
                 location: Point3D::new(0, 0, 0),
-                chunk: ChunkBlockStorage::new(BlockEnvironment::new()),
+                size: 16,
             }),
         }
+    }
+}
+
+impl UnboundedBlockStorage for OctreeBlockStorage {
+    fn get_mut<T>(&mut self, pos: Point3D<i64>) -> &mut Block {
+        self.root.get_or_create(pos)
     }
 }
