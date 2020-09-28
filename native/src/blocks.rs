@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use types::BlockTypes;
 use std::fmt::Debug;
+use types::BlockTypes;
 
 use std::ops::Index;
 
 use crate::rendering::*;
-use euclid::default::*;
 use blocktype::*;
+use euclid::default::*;
 
 pub mod geometry;
 pub use geometry::*;
@@ -33,9 +33,9 @@ impl Block {
     }
 }
 
+pub mod blocktype;
 pub mod environment;
 pub mod storage;
-pub mod blocktype;
 pub mod types;
 
 #[macro_export]

@@ -16,5 +16,7 @@ pub enum BlockTypes {
 }
 
 impl Default for BlockTypes {
-    fn default() -> Self { Self::Vacuum(Vacuum) }
+    fn default() -> Self {
+        Self::Vacuum(Vacuum)
+    }
 }

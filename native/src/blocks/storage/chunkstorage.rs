@@ -1,6 +1,6 @@
-use types::vacuum::*;
 use crate::blocks::*;
 use crate::rendering::Mesh;
+use types::vacuum::*;
 
 use array_macro::array;
 use storage::*;

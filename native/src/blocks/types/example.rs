@@ -6,7 +6,6 @@ use lazy_static::lazy_static;
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Example;
 
-
 lazy_static! {
     static ref VERTICES: (Vec<Vertex>, Vec<u32>) = {
         let mut vertices = vec![];

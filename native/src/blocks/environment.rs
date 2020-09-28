@@ -1,9 +1,10 @@
 use super::*;
-use types::BlockTypes;
 use std::ops::IndexMut;
+use types::BlockTypes;
 
 pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
-pub struct BlockDataAccessor<'a> { // TODO: FIX AND REPLACE BLOCKTYPE
+pub struct BlockDataAccessor<'a> {
+    // TODO: FIX AND REPLACE BLOCKTYPE
     location: BlockLocation,
     storage: &'a BlockEnvironment,
 }
@@ -14,10 +15,7 @@ impl<'a> BlockDataAccessor<'a> {
     }
 
     pub fn new(location: BlockLocation, storage: &'a BlockEnvironment) -> Self {
-        BlockDataAccessor {
-            location,
-            storage,
-        }
+        BlockDataAccessor { location, storage }
     }
 }
 

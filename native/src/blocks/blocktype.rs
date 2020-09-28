@@ -1,6 +1,6 @@
 use super::*;
-use environment::*;
 use enum_dispatch::enum_dispatch;
+use environment::*;
 
 #[enum_dispatch(BlockTypes)]
 pub trait BlockType: Debug {
@@ -23,7 +23,10 @@ pub trait SimpleBlockType {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>);
 }
 
-impl<T> BlockType for T where T: SimpleBlockType + Debug {
+impl<T> BlockType for T
+where
+    T: SimpleBlockType + Debug,
+{
     fn create(&self, _: Block, _: BlockDataAccessor) {}
 
     fn append_mesh(
