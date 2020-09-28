@@ -1,73 +1,32 @@
-use core::iter::*;
-
-use array_macro::array;
+use types::BlockTypes;
 
 use crate::rendering::*;
 use euclid::default::*;
 
+pub mod geometry;
+pub use geometry::*;
+
 pub type BlockData = [u8; 32];
+pub type Stress = u16;
+pub type BlockLocation = Point3D<i64>;
+pub type PositionedBlock = (BlockLocation, Block);
 
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub struct Vertex {
-    pub position: Point3D<f32>,
-    pub normal: Vector3D<f32>,
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+pub struct Block {
+    pub block_type: BlockTypes,
+    pub rotation: Rotation,
+    pub stress: Stress,
 }
 
-impl std::ops::Add<Vector3D<f32>> for Vertex {
-    type Output = Vertex;
-    fn add(self, other: Vector3D<f32>) -> Self::Output {
-        Vertex::new(self.position + other, self.normal)
-    }
-}
-
-impl Vertex {
-    pub fn new(position: Point3D<f32>, normal: Vector3D<f32>) -> Vertex {
-        Vertex { position, normal }
-    }
-}
-
-pub trait BlockType<T>: std::fmt::Debug {
-    /// Appends the block's mesh to the global Mesh.
-    ///
-    /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
-    /// The translation is applied first, then the rotation.
-    fn append_mesh(&self, data: &T, transform: Transform3D<f32>, mesh: &mut Mesh);
-}
-
-#[derive(Clone, Debug)]
-pub struct Block<T: 'static> {
-    pub block_type: &'static dyn BlockType<T>,
-    data: BlockData,
-}
-
-impl<T> Block<T> {
-    pub fn append_mesh(&self, transform: Transform3D<f32>, mesh: &mut Mesh) {
-        unsafe {
-            self.block_type
-                .append_mesh(std::mem::transmute::<_, &T>(&self.data), transform, mesh)
+impl Block {
+    pub fn new(block_type: BlockTypes, rotation: Rotation, stress: Stress) -> Block {
+        Block {
+            block_type,
+            rotation,
+            stress,
         }
     }
-
-    pub fn new(block_type: &'static dyn BlockType<T>, data: T) -> Block<T> {
-        unsafe {
-            let data = *std::mem::transmute::<_, &BlockData>(&data);
-            Block::<T> {
-                block_type,
-                data,
-            }
-        }
-    }
-    pub fn cast(block: Block<T>) -> Block<BlockData> {
-        unsafe { std::mem::transmute(block) }
-    }
-    pub fn cast_type(t: Box<dyn BlockType<T>>) -> Box<dyn BlockType<BlockData>> {
-        unsafe { std::mem::transmute(t) }
-    }
 }
-
-pub mod default;
-pub mod storage;
-pub mod types;
 
 #[macro_export]
 macro_rules! assert_block_size {
@@ -77,3 +36,10 @@ macro_rules! assert_block_size {
         );
     };
 }
+
+pub mod environment;
+use environment::*;
+pub mod blocktype;
+use blocktype::*;
+pub mod storage;
+pub mod types;

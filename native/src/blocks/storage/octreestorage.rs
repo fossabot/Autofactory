@@ -1,16 +1,19 @@
 use super::*;
 use chunkstorage::*;
 /// Every i64 has units of chunk size
+#[RefAccessors]
 pub struct ChunkLeaf {
     pub location: Point3D<i64>,
     pub chunk: ChunkBlockStorage,
 }
 
+#[RefAccessors]
 pub struct AirLeaf {
     pub location: Point3D<i64>,
     pub size: i64,
 }
 
+#[RefAccessors]
 pub struct Branch {
     /// Location of the center of the branch.
     pub location: Point3D<i64>,
@@ -31,6 +34,7 @@ impl Branch {
     }
 }
 
+#[RefAccessors]
 pub enum Node {
     ChunkLeaf(ChunkLeaf),
     AirLeaf(AirLeaf),
@@ -38,85 +42,87 @@ pub enum Node {
 }
 
 impl Node {
+    fn get_opt_ref<'a, T: RefType>(
+        self: Ref<'a, Self, T>,
+        pos: Point3D<i64>,
+    ) -> Option<Ref<'a, Block, T>> {
+        match self.to_wrapped() {
+            NodeRef::AirLeaf(_) => None,
+            NodeRef::ChunkLeaf(cl) => {
+                let ChunkLeafRef { chunk, location } = cl.to_wrapped();
+                chunk.get_opt_ref(pos - location.to_vector())
+            }
+            NodeRef::Branch(branch) => {
+                let location = pos - branch.location.to_vector();
+                if branch.contains(location) {
+                    let trees = branch.to_wrapped().trees;
+                    let x = if location.x < 0 {
+                        trees.index_ref(0)
+                    } else {
+                        trees.index_ref(1)
+                    };
+                    let y = if location.y < 0 {
+                        x.index_ref(0)
+                    } else {
+                        x.index_ref(1)
+                    };
+                    let z = if location.z < 0 {
+                        y.index_ref(0)
+                    } else {
+                        y.index_ref(1)
+                    };
+                    z.deref_ref().get_opt_ref(location)
+                } else {
+                    None
+                }
+            }
+        }
+    }
 
-    fn contains(&self, location: Point3D<i64>) -> bool {
+    /// If this returns false, then a Branch wrapper should be created around the Octree.
+    fn should_descend(&self, pos: Point3D<i64>) -> bool {
         match self {
-            Node::AirLeaf(AirLeaf { .. }) => false,
-            Node::ChunkLeaf(ChunkLeaf { location: chunk_location, .. }) => (location - *chunk_location)
+            Node::AirLeaf(AirLeaf { size, location }) => {
+                (pos - *location).to_array().iter().all(|x| x < size)
+            }
+            Node::ChunkLeaf(ChunkLeaf { location, .. }) => (pos - *location)
                 .to_array()
                 .iter()
                 .all(|x| *x >= 0 && *x < CHUNK_SIZEI),
-            Node::Branch(Branch { size, location: branch_location, .. }) => (location - *branch_location)
-                .abs()
-                .to_array()
-                .iter()
-                .all(|x| x < size),
-        }
-    }
-
-    fn get_opt(&self, location: Point3D<i64>) -> Option<&Block<BlockData>> {
-        match self {
-            Node::AirLeaf(_) => None,
-            Node::ChunkLeaf(ChunkLeaf {
-                chunk,
-                location: chunk_location,
-            }) => chunk.get_opt(location - chunk_location.to_vector()),
-            Node::Branch(branch) => {
-                let location = location - branch.location.to_vector();
-                if branch.contains(location) {
-                    let trees = &branch.trees;
-                    let x = if location.x < 0 { &trees[0] } else { &trees[1] };
-                    let y = if location.y < 0 { &x[0] } else { &x[1] };
-                    let z = if location.z < 0 { &y[0] } else { &y[1] };
-                    z.get_opt(location)
-                } else {
-                    None
-                }
-            }
-        }
-    }
-
-    fn get_mut_opt(&mut self, location: Point3D<i64>) -> Option<&mut Block<BlockData>> {
-        match self {
-            Node::AirLeaf(_) => None,
-            Node::ChunkLeaf(ChunkLeaf {
-                chunk,
-                location: chunk_location,
-            }) => chunk.get_mut_opt(location - chunk_location.to_vector()),
-            Node::Branch(branch) => {
-                let location = location - branch.location.to_vector();
-                if branch.contains(location) {
-                    let trees = &mut branch.trees;
-                    let x = if location.x < 0 { &mut trees[0] } else { &mut trees[1] };
-                    let y = if location.y < 0 { &mut x[0] } else { &mut x[1] };
-                    let z = if location.z < 0 { &mut y[0] } else { &mut y[1] };
-                    z.get_mut_opt(location)
-                } else {
-                    None
-                }
+            Node::Branch(Branch { size, location, .. }) => {
+                (pos - *location).abs().to_array().iter().all(|x| x < size)
             }
         }
     }
 }
 
+#[RefAccessors]
 pub struct OctreeBlockStorage {
-    pub root: Node,
+    root: Node,
 }
 
 impl BlockStorage for OctreeBlockStorage {
-    fn get_opt(&self, location: Point3D<i64>) -> Option<&Block<BlockData>> {
-        self.root.get_opt(location)
+    fn get_opt_ref<'a, T: RefType>(
+        self: Ref<'a, Self, T>,
+        pos: Point3D<i64>,
+    ) -> Option<Ref<'a, Block, T>> {
+        self.to_wrapped().root.get_opt_ref(pos)
     }
-    fn get_mut_opt(&mut self, location: Point3D<i64>) -> Option<&mut Block<BlockData>> {
-        if !self.root.contains(location) {}
-        self.root.get_mut_opt(location)
-    }
+}
+
+impl InternalEnvironmentBlockStorage for OctreeBlockStorage {
     fn new() -> Self {
         OctreeBlockStorage {
-            root: Node::ChunkLeaf(ChunkLeaf {
+            root: Node::AirLeaf(AirLeaf {
                 location: Point3D::new(0, 0, 0),
-                chunk: ChunkBlockStorage::new(),
+                size: 16,
             }),
         }
+    }
+}
+
+impl UnboundedBlockStorage for OctreeBlockStorage {
+    fn get_mut<T>(&mut self, pos: Point3D<i64>) -> &mut Block {
+        self.root.get_or_create(pos)
     }
 }

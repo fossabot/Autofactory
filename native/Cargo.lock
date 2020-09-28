@@ -43,6 +43,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "697c714f50560202b1f4e2e09cd50a421881c83e9025db75d15f276616f04f40"
 
 [[package]]
+name = "enum_dispatch"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d2984c9b91ef2cd76b29bbc4b6f123b146e73a4bae7dbde490bd5115f6f8f7d"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "euclid"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -94,6 +106,7 @@ name = "ne"
 version = "1.0.0"
 dependencies = [
  "array-macro",
+ "enum_dispatch",
  "euclid",
  "lazy_static",
  "neon",
@@ -155,6 +168,12 @@ checksum = "ac267bcc07f48ee5f8935ab0d24f316fb722d7a1292e2913f0cc196b29ffd611"
 dependencies = [
  "autocfg",
 ]
+
+[[package]]
+name = "once_cell"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
 
 [[package]]
 name = "physx-sys"
@@ -232,15 +251,14 @@ dependencies = [
 
 [[package]]
 name = "ref_clone"
-version = "0.1.0"
+version = "0.5.0"
 
 [[package]]
 name = "ref_clone_derive"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "ref_clone",
  "syn",
 ]
 

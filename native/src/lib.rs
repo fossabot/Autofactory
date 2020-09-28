@@ -1,3 +1,5 @@
+#![feature(arbitrary_self_types)]
+
 use neon::prelude::*;
 
 use euclid::default::Point3D;

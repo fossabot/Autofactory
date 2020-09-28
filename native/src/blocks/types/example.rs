@@ -1,11 +1,10 @@
+#![allow(non_upper_case_globals)]
+
 use crate::blocks::*;
-use default::*;
 use lazy_static::lazy_static;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct ExampleBlockType;
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct ExampleBlockData;
+pub struct Example;
 
 lazy_static! {
     static ref VERTICES: (Vec<Vertex>, Vec<u32>) = {
@@ -44,9 +43,8 @@ lazy_static! {
     };
 }
 
-impl DefaultBlockType<ExampleBlockData> for ExampleBlockType {
+impl SimpleBlockType for Example {
     fn get_vertices() -> &'static (Vec<Vertex>, Vec<u32>) {
         &VERTICES
     }
 }
-crate::assert_block_size!(ExampleBlockData);

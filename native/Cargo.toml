@@ -22,5 +22,6 @@ array-macro = "1.0.5"
 rand = "0.7.3"
 euclid = "0.22.0"
 lazy_static = "1.4.0"
+enum_dispatch = "0.3.3"
 ref_clone = { path = "../../ref_clone/ref_clone/" }
 ref_clone_derive = { path = "../../ref_clone/ref_clone_derive/" }
