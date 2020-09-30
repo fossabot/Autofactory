@@ -9,7 +9,7 @@
         "clean": "rm -r out/* && rm -r native/target && rm -r native/index.node"
     },
     "author": "iMplode nZ",
-    "license": "UNLICENCED",
+    "license": "GPL-3.0-only",
     "dependencies": {
         "@implode-nz/html": "^6.0.0",
         "electron": "^9.1.2",

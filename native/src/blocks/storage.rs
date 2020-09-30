@@ -6,20 +6,14 @@ pub trait BlockStorage {
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,
-    ) -> Option<Ref<'a, Block, T>>
-    where
-        Self: Sized;
+    ) -> Option<Ref<'a, Block, T>>;
 
     fn get_opt(&self, coords: Point3D<i64>) -> Option<&Block>
-    where
-        Self: Sized,
     {
         Self::get_opt_ref(Ref::new(self), coords).map(|x| x.as_ref())
     }
 
     fn get_opt_mut(&mut self, coords: Point3D<i64>) -> Option<&mut Block>
-    where
-        Self: Sized,
     {
         Self::get_opt_ref(Ref::new(self), coords).map(|mut x| x.as_mut())
     }

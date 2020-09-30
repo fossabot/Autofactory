@@ -2,25 +2,27 @@
 name = "ne"
 version = "1.0.0"
 authors = ["iMplode nZ <rg@youxplode.com>"]
-license = "UNLICENCED"
+license = "GPL-3.0-only"
 build = "build.rs"
 edition = "2018"
 exclude = ["artifacts.json", "index.node"]
+publish = false
 
 [lib]
 name = "ne"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-neon-build = "0.4.0"
+neon-build = "0.4.2"
 
 [dependencies]
-neon = "0.4.0"
+neon = "0.4.2"
 physx-sys = "0.4.9"
 static_assertions = "1.1.0"
 array-macro = "1.0.5"
 rand = "0.7.3"
-euclid = "0.22.0"
+euclid = "0.22.1"
+take_mut = "0.2.2"
 lazy_static = "1.4.0"
 enum_dispatch = "0.3.3"
 ref_clone = { path = "../../ref_clone/ref_clone/" }

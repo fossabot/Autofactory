@@ -68,3 +68,35 @@ impl Vertex {
         Vertex { position, normal }
     }
 }
+
+pub struct Points;
+
+impl Points {
+    pub fn map<T, S, F>(mut f: F, x: Point3D<T>) -> Point3D<S>
+    where
+        F: FnMut(T) -> S,
+    {
+        Point3D::new(f(x.x), f(x.y), f(x.z))
+    }
+    pub fn all<T, F>(mut f: F, x: Point3D<T>) -> bool
+    where
+        F: FnMut(T) -> bool,
+    {
+        f(x.x) && f(x.y) && f(x.z)
+    }
+    pub fn any<T, F>(mut f: F, x: Point3D<T>) -> bool
+    where
+        F: FnMut(T) -> bool,
+    {
+        f(x.x) || f(x.y) || f(x.z)
+    }
+    pub fn repeat<T: Copy>(a: T) -> Point3D<T> {
+        Point3D::new(a, a, a)
+    }
+    pub fn combine<T, S, U, F>(mut f: F, x: Point3D<T>, y: Point3D<S>) -> Point3D<U>
+    where
+        F: FnMut(T, S) -> U,
+    {
+        Point3D::new(f(x.x, y.x), f(x.y, y.y), f(x.z, y.z))
+    }
+}
