@@ -219,6 +219,7 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use types::example::Example;
     #[test]
     fn test_simple_access() {
         let mut storage = OctreeBlockStorage::new();
@@ -231,5 +232,24 @@ mod tests {
         let accessor = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
         println!("{:?}", accessor);
         assert_eq!(format!("{:?}", accessor), "(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockDataAccessor { location: (0, 0, 0), storage: BlockEnvironment { storage: {} } })");
+    }
+    #[test]
+    fn test_block_writing() {
+        let mut storage = OctreeBlockStorage::new();
+        let (block, accessor) = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
+        accessor.rewrite(
+            block,
+            Example.into(),
+            Default::default(),
+            Default::default(),
+        );
+        assert_eq!(
+            *block,
+            Block {
+                block_type: Example.into(),
+                rotation: Default::default(),
+                stress: Default::default()
+            }
+        );
     }
 }
