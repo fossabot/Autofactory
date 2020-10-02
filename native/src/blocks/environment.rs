@@ -75,6 +75,7 @@ impl BlockEnvironment {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 impl IndexRef<BlockLocation> for BlockEnvironment {
     type Output = BlockData;
     fn index_ref<'a, S: RefType>(
