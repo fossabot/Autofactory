@@ -17,7 +17,6 @@ neon-build = "0.4.2"
 
 [dependencies]
 neon = "0.4.2"
-physx-sys = "0.4.9"
 static_assertions = "1.1.0"
 array-macro = "1.0.5"
 rand = "0.7.3"

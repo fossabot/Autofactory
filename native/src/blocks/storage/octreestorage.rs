@@ -50,7 +50,7 @@ impl Node {
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,
-    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
+    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
         match self.to_wrapped() {
             NodeRef::AirLeaf(_) => None,
             NodeRef::ChunkLeaf(cl) => {
@@ -84,7 +84,7 @@ impl Node {
         }
     }
 
-    fn descend(&mut self, pos: Point3D<i64>) -> (&mut Block, &mut BlockEnvironment) {
+    fn descend(&mut self, pos: Point3D<i64>) -> (&mut Block, BlockDataAccessor<Unique>) {
         match self {
             Node::AirLeaf(AirLeaf { size, location }) => {
                 debug_assert!(*size % CHUNK_SIZEI == 0);
@@ -140,7 +140,7 @@ impl BlockStorage for OctreeBlockStorage {
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,
-    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
+    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
         self.to_wrapped().root.get_opt_ref(pos)
     }
 }
@@ -211,7 +211,7 @@ impl OctreeBlockStorage {
 }
 
 impl UnboundedBlockStorage for OctreeBlockStorage {
-    fn get_mut(&mut self, pos: Point3D<i64>) -> (&mut Block, &mut BlockEnvironment) {
+    fn get_mut(&mut self, pos: Point3D<i64>) -> (&mut Block, BlockDataAccessor<Unique>) {
         self.ascend(pos);
         self.root.descend(pos)
     }

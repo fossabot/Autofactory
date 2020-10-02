@@ -6,21 +6,21 @@ pub trait BlockStorage {
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,
-    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)>;
+    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)>;
 
-    fn get_opt_env(&self, coords: Point3D<i64>) -> Option<(&Block, &BlockEnvironment)> {
+    fn get_opt_env(&self, coords: Point3D<i64>) -> Option<(&Block, BlockDataAccessor<Shared>)> {
         Ref::new(self)
             .get_opt_env_ref(coords)
-            .map(|x| (x.0.as_ref(), x.1.as_ref()))
+            .map(|x| (x.0.as_ref(), x.1))
     }
 
     fn get_opt_env_mut(
         &mut self,
         coords: Point3D<i64>,
-    ) -> Option<(&mut Block, &mut BlockEnvironment)> {
+    ) -> Option<(&mut Block, BlockDataAccessor<Unique>)> {
         Ref::new(self)
             .get_opt_env_ref(coords)
-            .map(|mut x| (x.0.as_mut(), x.1.as_mut()))
+            .map(|mut x| (x.0.as_mut(), x.1))
     }
 
     fn get_opt_ref<'a, T: RefType>(
@@ -61,7 +61,7 @@ pub trait UniqueEnvironmentBlockStorage: BlockStorage {
 }
 
 pub trait UnboundedBlockStorage: BlockStorage {
-    fn get_mut(&mut self, coords: Point3D<i64>) -> (&mut Block, &mut BlockEnvironment);
+    fn get_mut(&mut self, coords: Point3D<i64>) -> (&mut Block, BlockDataAccessor<Unique>);
 }
 
 pub mod chunkstorage;

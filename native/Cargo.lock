@@ -26,9 +26,6 @@ name = "cc"
 version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef611cc68ff783f18535d77ddd080185275713d852c4f5cbb6122c462a7a825c"
-dependencies = [
- "jobserver",
-]
 
 [[package]]
 name = "cfg-if"
@@ -75,15 +72,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jobserver"
-version = "0.1.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c71313ebb9439f74b00d9d2dcec36440beaf57a6aa0623068441dd7cd81a7f2"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -111,7 +99,6 @@ dependencies = [
  "lazy_static",
  "neon",
  "neon-build",
- "physx-sys",
  "rand",
  "ref_clone",
  "ref_clone_derive",
@@ -176,15 +163,6 @@ name = "once_cell"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
-
-[[package]]
-name = "physx-sys"
-version = "0.4.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d1a687e7cd79d5e95d3863ada7bbf69a9b39804c1bdcea3237c6e2dd8693b53"
-dependencies = [
- "cc",
-]
 
 [[package]]
 name = "ppv-lite86"

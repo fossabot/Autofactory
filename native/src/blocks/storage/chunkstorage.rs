@@ -26,7 +26,7 @@ impl BlockStorage for ChunkBlockStorage {
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: BlockLocation,
-    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
+    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
         if coords
             .to_array()
             .iter()
@@ -41,7 +41,7 @@ impl BlockStorage for ChunkBlockStorage {
                     .index_ref(coords.x as usize)
                     .index_ref(coords.y as usize)
                     .index_ref(coords.z as usize),
-                wr.env,
+                BlockDataAccessor::new(coords, wr.env),
             ))
         }
     }

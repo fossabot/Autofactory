@@ -7,6 +7,7 @@ use std::ops::IndexMut;
 use types::BlockTypes;
 
 pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
+#[derive(Debug)]
 pub struct BlockDataAccessor<'a, T: RefType> {
     // TODO: FIX AND REPLACE BLOCKTYPE
     pub location: BlockLocation,
@@ -14,12 +15,24 @@ pub struct BlockDataAccessor<'a, T: RefType> {
 }
 
 impl<'a, T: RefType> BlockDataAccessor<'a, T> {
-    pub fn access(self) -> Ref<'a, BlockData, T> {
+    pub fn access_ref(self) -> Ref<'a, BlockData, T> {
         self.storage.index_ref(self.location)
     }
 
     pub fn new(location: BlockLocation, storage: Ref<'a, BlockEnvironment, T>) -> Self {
         BlockDataAccessor { location, storage }
+    }
+}
+
+impl<'a> BlockDataAccessor<'a, Shared> {
+    pub fn access(self) -> &'a BlockData {
+        &self.storage.as_ref()[self.location]
+    }
+}
+
+impl<'a> BlockDataAccessor<'a, Unique> {
+    pub fn access(mut self) -> &'a mut BlockData {
+        &mut self.storage.as_mut()[self.location]
     }
 }
 
