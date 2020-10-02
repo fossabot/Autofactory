@@ -1,5 +1,6 @@
 use crate::blocks::*;
 use crate::rendering::Mesh;
+use std::fmt::Debug;
 
 use array_macro::array;
 use storage::*;
@@ -8,17 +9,24 @@ pub const CHUNK_SIZE: usize = 16;
 pub const CHUNK_SIZEI: i64 = CHUNK_SIZE as i64;
 
 #[RefAccessors]
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ChunkBlockStorage {
     pub blocks: Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>,
     pub env: BlockEnvironment,
 }
+
+impl Debug for ChunkBlockStorage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str("ChunkBlockStorage(...)")
+    }
+}
+
 impl BlockStorage for ChunkBlockStorage {
     #[allow(clippy::needless_lifetimes)]
-    fn get_opt_ref<'b, T: RefType>(
-        self: Ref<'b, Self, T>,
+    fn get_opt_env_ref<'a, T: RefType>(
+        self: Ref<'a, Self, T>,
         coords: BlockLocation,
-    ) -> Option<Ref<'b, Block, T>> {
+    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
         if coords
             .to_array()
             .iter()
@@ -26,14 +34,15 @@ impl BlockStorage for ChunkBlockStorage {
         {
             None
         } else {
-            Some(
-                self.to_wrapped()
-                    .blocks
+            let wr = self.to_wrapped();
+            Some((
+                wr.blocks
                     .deref_ref()
                     .index_ref(coords.x as usize)
                     .index_ref(coords.y as usize)
                     .index_ref(coords.z as usize),
-            )
+                wr.env,
+            ))
         }
     }
 }

@@ -11,6 +11,9 @@ pub type Stress = u16;
 pub type BlockLocation = Point3D<i64>;
 pub type PositionedBlock = (BlockLocation, Block);
 
+/// A block.
+/// All blocks have a type, which is represented by the BlockTypes enum.
+/// The blocks may or may not have a rotation at the end. They do all have stress though.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
 pub struct Block {
     pub block_type: BlockTypes,

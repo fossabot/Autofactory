@@ -3,27 +3,26 @@
 ///           TODO: TEST THIS THING            ///
 ///--------------------------------------------///
 ///============================================///
-
 use super::*;
 use array_macro::*;
 use chunkstorage::*;
 use std::ops::Mul;
 #[RefAccessors]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ChunkLeaf {
     pub location: Point3D<i64>,
     pub chunk: ChunkBlockStorage,
 }
 
 #[RefAccessors]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AirLeaf {
     pub location: Point3D<i64>,
     pub size: i64,
 }
 
 #[RefAccessors]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Branch {
     /// Location of the center of the branch.
     pub location: Point3D<i64>,
@@ -40,7 +39,7 @@ impl Branch {
 }
 
 #[RefAccessors]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Node {
     ChunkLeaf(ChunkLeaf),
     AirLeaf(AirLeaf),
@@ -51,12 +50,12 @@ impl Node {
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,
-    ) -> Option<Ref<'a, Block, T>> {
+    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
         match self.to_wrapped() {
             NodeRef::AirLeaf(_) => None,
             NodeRef::ChunkLeaf(cl) => {
                 let ChunkLeafRef { chunk, location } = cl.to_wrapped();
-                chunk.get_opt_ref(pos - location.to_vector())
+                chunk.get_opt_env_ref(pos - location.to_vector())
             }
             NodeRef::Branch(branch) => {
                 let location = pos - branch.location.to_vector();
@@ -77,7 +76,7 @@ impl Node {
                     } else {
                         y.index_ref(1)
                     };
-                    z.deref_ref().get_opt_ref(location)
+                    z.deref_ref().get_opt_ref(pos)
                 } else {
                     None
                 }
@@ -85,7 +84,7 @@ impl Node {
         }
     }
 
-    fn descend(&mut self, pos: Point3D<i64>) -> &mut Block {
+    fn descend(&mut self, pos: Point3D<i64>) -> (&mut Block, &mut BlockEnvironment) {
         match self {
             Node::AirLeaf(AirLeaf { size, location }) => {
                 debug_assert!(*size % CHUNK_SIZEI == 0);
@@ -111,7 +110,7 @@ impl Node {
                 self.descend(pos)
             }
             Node::ChunkLeaf(ChunkLeaf { location, chunk }) => {
-                chunk.get_opt_mut(pos - location.to_vector()).unwrap()
+                chunk.get_opt_env_mut(pos - location.to_vector()).unwrap()
             }
             Node::Branch(Branch {
                 location, trees, ..
@@ -124,23 +123,24 @@ impl Node {
                 };
                 let y = if location.y < 0 { &mut x[0] } else { &mut x[1] };
                 let z = if location.z < 0 { &mut y[0] } else { &mut y[1] };
-                z.descend(location)
+                z.descend(pos)
             }
         }
     }
 }
 
 #[RefAccessors]
+#[derive(Clone, Debug)]
 pub struct OctreeBlockStorage {
     root: Node,
     aabb: Box3D<i64>,
 }
 
 impl BlockStorage for OctreeBlockStorage {
-    fn get_opt_ref<'a, T: RefType>(
+    fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,
-    ) -> Option<Ref<'a, Block, T>> {
+    ) -> Option<(Ref<'a, Block, T>, Ref<'a, BlockEnvironment, T>)> {
         self.to_wrapped().root.get_opt_ref(pos)
     }
 }
@@ -175,7 +175,7 @@ impl OctreeBlockStorage {
                 Point3D::new(x.x * y.x, x.y * y.y, x.z * y.z)
             }
             let t = pos - (aabb.min.to_vector() + aabb.max.to_vector()) / 2;
-            let t = Points::map(|x| sign(x), t);
+            let t = Points::map(sign, t);
             let nt = -t + Points::repeat(1).to_vector();
             debug_assert!(aabb.width() == aabb.height() && aabb.height() == aabb.depth());
             let size = aabb.width();
@@ -183,27 +183,35 @@ impl OctreeBlockStorage {
                 let mut root = Some(root);
                 let trees = array![|i| array![|j| array![|k| Box::new({
                     let ijk = Point3D::new(i, j, k).to_i64();
-                    if ijk == t {
+                    if ijk == nt {
                         root.take().unwrap()
                     } else {
                         Node::AirLeaf(AirLeaf {
                             size,
-                            location: (ijk - t).to_point() * Scale::new(size) + aabb.min.to_vector(), // TODO: FIX BC WRONG
+                            location: (ijk - nt.to_vector()) * Scale::new(size) + aabb.min.to_vector(),
                         })
                     }
                 }); 2]; 2]; 2];
                 Node::Branch(Branch {
-                    location: mult(aabb.min, t) + mult(aabb.max, nt).to_vector(),
+                    location: mult(aabb.min, nt) + mult(aabb.max, t).to_vector(),
                     trees,
                     size: size * 2,
                 })
             });
+            let sv = Points::repeat(size).to_vector();
+            let root = if let Node::Branch(br) = &self.root {
+                br
+            } else {
+                panic!()
+            };
+            self.aabb = Box3D::new(root.location - sv, root.location + sv);
+            println!("{:#?}", self);
         }
     }
 }
 
 impl UnboundedBlockStorage for OctreeBlockStorage {
-    fn get_mut<T>(&mut self, pos: Point3D<i64>) -> &mut Block {
+    fn get_mut(&mut self, pos: Point3D<i64>) -> (&mut Block, &mut BlockEnvironment) {
         self.ascend(pos);
         self.root.descend(pos)
     }
@@ -211,8 +219,17 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
 
 #[cfg(test)]
 mod tests {
-    use crate::blocks::BlockEnvironment;
-
-    fn test_default_insertion() {
+    use super::*;
+    #[test]
+    fn test_simple_access() {
+        let mut storage = OctreeBlockStorage::new();
+        storage.get_mut(Point3D::new(0, 0, 0));
+        assert_eq!(format!("{:?}", storage), "OctreeBlockStorage { root: ChunkLeaf(ChunkLeaf { location: (0, 0, 0), chunk: ChunkBlockStorage(...) }), aabb: Box3D((0, 0, 0), (16, 16, 16)) }");
+    }
+    #[test]
+    fn test_complex_access() {
+        let mut storage = OctreeBlockStorage::new();
+        let accessor = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
+        assert_eq!("(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockEnvironment { storage: {} })", format!("{:?}", accessor));
     }
 }

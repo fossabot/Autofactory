@@ -1,15 +1,21 @@
 #![feature(arbitrary_self_types)]
+//! The native component of the game.
+//!
+//! This will consist of everything apart from the user input and UI.
 
 use neon::prelude::*;
 
 use euclid::default::Point3D;
 use physx_sys::*;
 use std::ptr::null_mut;
+/// All block related stuff, including storage of blocks.
 pub mod blocks;
+/// All rendering related stuff. This currently only includes a small mesh implementation that gets sent to the JavaScript part.
 pub mod rendering;
+/// Random stuff that doesn't belong anywhere else.
 pub mod utils;
 
-pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
+fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     let global = cx.global().downcast::<JsObject>().or_throw(cx).unwrap();
     let handle_console = global.get(cx, "console").unwrap();
     let console = handle_console.downcast::<JsObject>().or_throw(cx).unwrap();
@@ -22,7 +28,7 @@ pub fn log<'a, T: Context<'a>>(cx: &mut T, str: &str) {
     log.call(cx, handle_console, vec![s]).unwrap();
 }
 
-pub fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
+fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     println!("Loading Chunks...");
     let mut mesh = rendering::Mesh::empty();
     let size = cx.argument::<JsNumber>(0)?.value() as i64;

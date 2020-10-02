@@ -1,10 +1,12 @@
 use super::*;
 use enum_dispatch::enum_dispatch;
+use ref_clone::Shared;
+use ref_clone::Unique;
 use std::fmt::Debug;
 
 #[enum_dispatch(BlockTypes)]
 pub trait BlockType: Debug {
-    fn create(&self, block: Block, accessor: BlockDataAccessor);
+    fn create(&self, block: Block, accessor: BlockDataAccessor<Unique>);
 
     /// Appends the block's mesh to the global Mesh.
     ///
@@ -13,7 +15,7 @@ pub trait BlockType: Debug {
     fn append_mesh(
         &self,
         block: Block,
-        accessor: BlockDataAccessor,
+        accessor: BlockDataAccessor<Shared>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     );
@@ -27,12 +29,12 @@ impl<T> BlockType for T
 where
     T: SimpleBlockType + Debug,
 {
-    fn create(&self, _: Block, _: BlockDataAccessor) {}
+    fn create(&self, _: Block, _: BlockDataAccessor<Unique>) {}
 
     fn append_mesh(
         &self,
         _: Block,
-        _: BlockDataAccessor,
+        _: BlockDataAccessor<Shared>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     ) {

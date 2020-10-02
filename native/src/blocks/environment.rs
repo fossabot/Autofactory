@@ -1,26 +1,29 @@
 use super::*;
+use ref_clone::*;
+use ref_clone_derive::*;
 use std::collections::HashMap;
 use std::ops::Index;
 use std::ops::IndexMut;
 use types::BlockTypes;
 
 pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
-pub struct BlockDataAccessor<'a> {
+pub struct BlockDataAccessor<'a, T: RefType> {
     // TODO: FIX AND REPLACE BLOCKTYPE
-    location: BlockLocation,
-    storage: &'a BlockEnvironment,
+    pub location: BlockLocation,
+    pub storage: Ref<'a, BlockEnvironment, T>,
 }
 
-impl<'a> BlockDataAccessor<'a> {
-    pub fn access(&self) -> BlockData {
-        self.storage[self.location]
+impl<'a, T: RefType> BlockDataAccessor<'a, T> {
+    pub fn access(self) -> Ref<'a, BlockData, T> {
+        self.storage.index_ref(self.location)
     }
 
-    pub fn new(location: BlockLocation, storage: &'a BlockEnvironment) -> Self {
+    pub fn new(location: BlockLocation, storage: Ref<'a, BlockEnvironment, T>) -> Self {
         BlockDataAccessor { location, storage }
     }
 }
 
+#[RefAccessors]
 #[derive(Clone, Debug, Default)]
 pub struct BlockEnvironment {
     storage: ExternalBlockDataStorage,
@@ -39,7 +42,7 @@ impl BlockEnvironment {
             rotation,
             stress,
         };
-        ty.create(block, BlockDataAccessor::new(position, &self));
+        ty.create(block, BlockDataAccessor::new(position, Ref::new(self)));
         block
     }
 
@@ -59,7 +62,7 @@ impl BlockEnvironment {
     ) {
         block.block_type.append_mesh(
             block,
-            BlockDataAccessor::new(position, &self),
+            BlockDataAccessor::new(position, Ref::new(self)),
             transform,
             mesh,
         );
@@ -69,6 +72,17 @@ impl BlockEnvironment {
         BlockEnvironment {
             storage: HashMap::new(),
         }
+    }
+}
+
+impl IndexRef<BlockLocation> for BlockEnvironment {
+    type Output = BlockData;
+    fn index_ref<'a, S: RefType>(
+        self: Ref<'a, Self, S>,
+        position: BlockLocation,
+    ) -> Ref<'a, BlockData, S> {
+        // Perfectly Safe (tm) don't worry about it.
+        unsafe { Ref::__new_unsafe(&self.__value().storage[&position]) }
     }
 }
 
