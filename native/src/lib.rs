@@ -33,7 +33,10 @@ fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     for x in -size..=size {
         for y in -size..=size {
             for z in -size..=size {
-                log(&mut cx, &format!("Loading Chunk at ({}, {}, {})", x, y, z)[..]);
+                log(
+                    &mut cx,
+                    &format!("Loading Chunk at ({}, {}, {})", x, y, z)[..],
+                );
                 utils::generate_random_mesh(Point3D::new(x, y, z), &mut mesh);
             }
         }

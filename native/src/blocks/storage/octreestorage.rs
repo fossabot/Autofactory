@@ -205,7 +205,6 @@ impl OctreeBlockStorage {
                 panic!()
             };
             self.aabb = Box3D::new(root.location - sv, root.location + sv);
-            println!("{:#?}", self);
         }
     }
 }
@@ -230,6 +229,7 @@ mod tests {
     fn test_complex_access() {
         let mut storage = OctreeBlockStorage::new();
         let accessor = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
-        assert_eq!("(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockEnvironment { storage: {} })", format!("{:?}", accessor));
+        println!("{:?}", accessor);
+        assert_eq!(format!("{:?}", accessor), "(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockDataAccessor { location: (0, 0, 0), storage: BlockEnvironment { storage: {} } })");
     }
 }
