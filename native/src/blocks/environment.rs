@@ -34,6 +34,15 @@ impl<'a> BlockDataAccessor<'a, Unique> {
     pub fn access(mut self) -> &'a mut BlockData {
         &mut self.storage.as_mut()[self.location]
     }
+
+    pub fn rewrite(self, block: &mut Block, ty: BlockTypes, rotation: Rotation, stress: Stress) {
+        *block = Block {
+            block_type: ty,
+            rotation,
+            stress,
+        };
+        ty.create(*block, self);
+    }
 }
 
 #[RefAccessors]
