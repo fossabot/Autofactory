@@ -1,24 +1,26 @@
 use super::*;
 use enum_dispatch::enum_dispatch;
-use ref_clone::Shared;
 use ref_clone::Unique;
 use std::fmt::Debug;
 
 #[enum_dispatch(BlockTypes)]
-pub trait BlockType: Debug {
-    fn create(&self, block: Block, accessor: BlockDataAccessor<Unique>);
+pub trait BlockType: Debug + Copy {
+    fn create(self, block: Block, accessor: BlockDataAccessor<Unique>);
 
     /// Appends the block's mesh to the global Mesh.
     ///
     /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
     /// The translation is applied first, then the rotation.
     fn append_mesh(
-        &self,
+        self,
         block: Block,
-        accessor: BlockDataAccessor<Shared>,
+        accessor: BlockDataAccessor<Unique>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     );
+
+    /// Does a thing that returns a String.
+    fn do_thing(self, block: Block, accessor: BlockDataAccessor<Unique>) -> String;
 }
 
 pub trait SimpleBlockType {
@@ -27,14 +29,14 @@ pub trait SimpleBlockType {
 
 impl<T> BlockType for T
 where
-    T: SimpleBlockType + Debug,
+    T: SimpleBlockType + Debug + Copy,
 {
-    fn create(&self, _: Block, _: BlockDataAccessor<Unique>) {}
+    fn create(self, _: Block, _: BlockDataAccessor<Unique>) {}
 
     fn append_mesh(
-        &self,
+        self,
         _: Block,
-        _: BlockDataAccessor<Shared>,
+        _: BlockDataAccessor<Unique>,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     ) {
@@ -49,5 +51,9 @@ where
                 .push(transform.transform_point3d(*position).unwrap());
             mesh.normals.push(*normal);
         }
+    }
+
+    fn do_thing(self, _: Block, _: BlockDataAccessor<Unique>) -> String {
+        "SimpleBlockType".to_string()
     }
 }

@@ -1,5 +1,3 @@
-#![allow(non_upper_case_globals)]
-
 use crate::blocks::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

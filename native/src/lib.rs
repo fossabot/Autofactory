@@ -56,5 +56,5 @@ register_module!(mut cx, {
     cx.export_function("example_chunk_mesh", example_chunk_mesh)
 });
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;

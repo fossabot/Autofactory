@@ -1,8 +1,4 @@
-///============================================///
-///--------------------------------------------///
-///           TODO: TEST THIS THING            ///
-///--------------------------------------------///
-///============================================///
+// TODO: MAKE THE OCTREE AUTOMATICALLY REPLACE EMPTY CHUNKS WITH AIR AND EMPTY BRANCHES WITH AIR
 use super::*;
 use array_macro::*;
 use chunkstorage::*;
@@ -99,7 +95,7 @@ impl Node {
                     let sv = Vector3D::new(size, size, size);
                     let trees = array![|i| array![|j| array![|k| Box::new(Node::AirLeaf(AirLeaf {
                         size,
-                        location: Point3D::new(i, j, k).to_i64() * Scale::new(size) - sv,
+                        location: Point3D::new(i, j, k).to_i64() * Scale::new(size) + location.to_vector(),
                     })); 2]; 2]; 2];
                     *self = Node::Branch(Branch {
                         location: *location + sv,
@@ -162,7 +158,6 @@ impl InternalEnvironmentBlockStorage for OctreeBlockStorage {
 
 impl OctreeBlockStorage {
     fn ascend(&mut self, pos: Point3D<i64>) {
-        println!("{:#?}", self);
         let aabb = self.aabb;
         if !aabb.contains(pos) {
             fn sign(x: i64) -> i64 {
@@ -222,19 +217,19 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
 mod tests {
     use super::*;
     use types::example::Example;
-    // #[test]
+    #[test]
     fn test_simple_access() {
         let mut storage = OctreeBlockStorage::new();
         storage.get_mut(Point3D::new(0, 0, 0));
         assert_eq!(format!("{:?}", storage), "OctreeBlockStorage { root: ChunkLeaf(ChunkLeaf { location: (0, 0, 0), chunk: ChunkBlockStorage(...) }), aabb: Box3D((0, 0, 0), (16, 16, 16)) }");
     }
-    // #[test]
+    #[test]
     fn test_complex_access() {
         let mut storage = OctreeBlockStorage::new();
         let accessor = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
         assert_eq!(format!("{:?}", accessor), "(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockDataAccessor { location: (0, 0, 0), storage: BlockEnvironment { storage: {} } })");
     }
-    // #[test]
+    #[test]
     fn test_block_writing() {
         let mut storage = OctreeBlockStorage::new();
         let (block, accessor) = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
@@ -258,10 +253,8 @@ mod tests {
     }
     #[test]
     fn make_big() {
-        // TODO: THIS FAILS
-        // MAKE THE OCTREE AUTOMATICALLY REPLACE EMPTY CHUNKS WITH AIR AND EMPTY BRANCHES WITH AIR
         let mut storage = OctreeBlockStorage::new();
         storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI * 2));
-        println!("{:#?}", storage);
+        storage.get_opt(Point3D::new(0, 0, CHUNK_SIZEI * 2));
     }
 }

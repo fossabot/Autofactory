@@ -63,9 +63,10 @@ impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
 }
 
 impl ChunkBlockStorage {
-    pub fn append_mesh(&self, transform: Transform3D<f32>, mesh: &mut Mesh) {
-        self.into_iter().for_each(|a| {
-            self.env.append_mesh(
+    pub fn append_mesh(&mut self, transform: Transform3D<f32>, mesh: &mut Mesh) {
+        let (iter, env) = self.iter_mut_with_env();
+        iter.for_each(|a| {
+            env.append_mesh(
                 (a.0, *a.1),
                 transform.pre_translate(a.0.to_vector().to_f32()),
                 mesh,

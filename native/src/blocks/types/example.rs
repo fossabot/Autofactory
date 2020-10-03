@@ -1,5 +1,3 @@
-#![allow(non_upper_case_globals)]
-
 use crate::blocks::*;
 use lazy_static::lazy_static;
 

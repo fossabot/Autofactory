@@ -77,7 +77,7 @@ impl BlockEnvironment {
     }
 
     pub fn append_mesh(
-        &self,
+        &mut self,
         (position, block): PositionedBlock,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
@@ -104,8 +104,7 @@ impl IndexRef<BlockLocation> for BlockEnvironment {
         self: Ref<'a, Self, S>,
         position: BlockLocation,
     ) -> Ref<'a, BlockData, S> {
-        // Perfectly Safe (tm) don't worry about it.
-        unsafe { Ref::__new_unsafe(&self.__value().storage[&position]) }
+        unsafe { Ref::__new_unsafe(&self.__value().storage.index(&position)) }
     }
 }
 
@@ -120,5 +119,23 @@ impl IndexMut<BlockLocation> for BlockEnvironment {
     fn index_mut(&mut self, position: BlockLocation) -> &mut BlockData {
         let entry = self.storage.entry(position);
         entry.or_insert([0; 32])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chunkstorage::*;
+    use storage::*;
+    use types::test::Test;
+    #[test]
+    fn test_data() {
+        let mut storage = ChunkBlockStorage::new(BlockEnvironment::new());
+        let (block, accessor) = storage.get_opt_env_mut(Point3D::new(0, 0, 0)).unwrap();
+        accessor.rewrite(block, Test.into(), Default::default(), Default::default());
+        let (block, accessor) = storage.get_opt_env_mut(Point3D::new(0, 0, 0)).unwrap();
+        assert_eq!(block.block_type.do_thing(*block, accessor), "Test: Zero");
+        let (block, accessor) = storage.get_opt_env_mut(Point3D::new(0, 0, 0)).unwrap();
+        assert_eq!(block.block_type.do_thing(*block, accessor), "Test: One");
     }
 }

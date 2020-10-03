@@ -37,7 +37,7 @@ fn gen_chunk() {
 
 #[test]
 fn gen_vertices() {
-    let chunk = crate::utils::generate_random_chunk(BlockEnvironment::new());
+    let mut chunk = crate::utils::generate_random_chunk(BlockEnvironment::new());
     let mut mesh = crate::rendering::Mesh::empty();
     chunk.append_mesh(euclid::default::Transform3D::identity(), &mut mesh);
     println!("{:?}", mesh);
