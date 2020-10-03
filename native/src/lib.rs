@@ -8,6 +8,8 @@ use neon::prelude::*;
 use euclid::default::Point3D;
 /// All block related stuff, including storage of blocks.
 pub mod blocks;
+/// All entity related stuff.
+pub mod entity;
 /// All rendering related stuff. This currently only includes a small mesh implementation that gets sent to the JavaScript part.
 pub mod rendering;
 /// Random stuff that doesn't belong anywhere else.
