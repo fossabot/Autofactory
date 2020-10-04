@@ -4,6 +4,7 @@
 //! This will consist of everything apart from the user input and UI.
 
 use neon::prelude::*;
+use bevy::prelude::*;
 
 use euclid::default::Point3D;
 /// All block related stuff, including storage of blocks.
@@ -54,14 +55,20 @@ fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     Ok(obj)
 }
 
-register_module!(mut cx, {
-    cx.export_function("example_chunk_mesh", example_chunk_mesh)
-});
-
 
 pub fn main() {
-
+    App::build().add_default_plugins().run();
 }
+
+fn main_wrapped(_: FunctionContext) -> JsResult<JsUndefined> {
+    main();
+    Ok(JsUndefined::new())
+}
+
+register_module!(mut cx, {
+    cx.export_function("example_chunk_mesh", example_chunk_mesh)?;
+    cx.export_function("main", main_wrapped)
+});
 
 #[cfg(test)]
 mod tests;
