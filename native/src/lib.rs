@@ -60,3 +60,7 @@ register_module!(mut cx, {
 
 #[cfg(test)]
 mod tests;
+
+pub fn main() {
+    println!("Hello from Lib");
+}
