@@ -58,9 +58,10 @@ register_module!(mut cx, {
     cx.export_function("example_chunk_mesh", example_chunk_mesh)
 });
 
-#[cfg(test)]
-mod tests;
 
 pub fn main() {
-    println!("Hello from Lib");
+
 }
+
+#[cfg(test)]
+mod tests;

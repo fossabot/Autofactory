@@ -1,1 +1,5 @@
-pub fn main() {}
+use ne::*;
+
+pub fn main() {
+    ne::main();
+}

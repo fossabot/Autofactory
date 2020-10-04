@@ -7,10 +7,15 @@ build = "build.rs"
 edition = "2018"
 exclude = ["artifacts.json", "index.node"]
 publish = false
+default-run = "main"
 
 [lib]
 name = "ne"
-crate-type = ["cdylib", "bin"]
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
 
 [build-dependencies]
 neon-build = "0.4.2"
