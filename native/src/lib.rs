@@ -4,9 +4,11 @@
 //! This will consist of everything apart from the user input and UI.
 
 use neon::prelude::*;
-use bevy::prelude::*;
 
 use euclid::default::Point3D;
+
+/// The main code that runs the rust end.
+pub mod main;
 /// All block related stuff, including storage of blocks.
 pub mod blocks;
 /// All entity related stuff.
@@ -55,13 +57,8 @@ fn example_chunk_mesh(mut cx: FunctionContext) -> JsResult<JsObject> {
     Ok(obj)
 }
 
-
-pub fn main() {
-    App::build().add_default_plugins().run();
-}
-
 fn main_wrapped(_: FunctionContext) -> JsResult<JsUndefined> {
-    main();
+    main::main();
     Ok(JsUndefined::new())
 }
 

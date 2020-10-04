@@ -15,7 +15,7 @@ crate-type = ["cdylib", "lib"]
 
 [[bin]]
 name = "main"
-path = "src/main.rs"
+path = "src/_main.rs"
 
 [build-dependencies]
 neon-build = "0.4.2"
@@ -32,11 +32,11 @@ enum_dispatch = "0.3.3"
 ref_clone = { path = "../../ref_clone/ref_clone/" }
 ref_clone_derive = { path = "../../ref_clone/ref_clone_derive/" }
 [dependencies.bevy]
-git = "https://github.com/bevyengine/bevy"
+version = "^0.2.1"
+# git = "https://github.com/bevyengine/bevy"
 default-features = false
 features = [
     "bevy_audio",
-    "bevy_dynamic_plugin",
     "bevy_gilrs",
     "bevy_gltf",
     "bevy_winit",

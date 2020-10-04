@@ -1,3 +1,5 @@
+use bevy::prelude::*;
+
 pub fn main() {
-    ne::main();
+    App::build().add_default_plugins().run();
 }
