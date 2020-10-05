@@ -18,10 +18,10 @@ name = "main"
 path = "src/_main.rs"
 
 [build-dependencies]
-neon-build = "0.4.2"
+# neon-build = "0.4.2"
 
 [dependencies]
-neon = "0.4.2"
+# neon = "0.4.2"
 static_assertions = "1.1.0"
 array-macro = "1.0.5"
 rand = "0.7.3"
@@ -34,15 +34,3 @@ ref_clone_derive = { path = "../../ref_clone/ref_clone_derive/" }
 [dependencies.bevy]
 version = "^0.2.1"
 # git = "https://github.com/bevyengine/bevy"
-default-features = false
-features = [
-    "bevy_audio",
-    "bevy_gilrs",
-    "bevy_gltf",
-    "bevy_winit",
-    "render",
-    "png",
-    "hdr",
-    "mp3",
-    "x11",
-]

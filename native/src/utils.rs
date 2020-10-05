@@ -3,7 +3,6 @@ use crate::blocks::*;
 use chunkstorage::*;
 use environment::BlockEnvironment;
 use euclid::default::Point3D;
-use neon::prelude::*;
 use rand::random;
 use types::*;
 
@@ -29,19 +28,4 @@ pub fn generate_random_mesh(location: Point3D<i64>, mut mesh: &mut crate::render
             .then_translate(location.to_f32().to_vector() * 16.0),
         &mut mesh,
     );
-}
-
-pub fn to_buffer<'a, T>(cx: &mut CallContext<'a, JsObject>, vec: Vec<T>) -> JsResult<'a, JsBuffer> {
-    unsafe {
-        let slice = vec.as_slice();
-        let slice = std::slice::from_raw_parts(
-            slice.as_ptr() as *const u8,
-            slice.len() * std::mem::size_of::<T>(),
-        );
-        let mut buf = cx.buffer(slice.len() as u32).unwrap();
-        cx.borrow_mut(&mut buf, |data| {
-            data.as_mut_slice::<u8>().copy_from_slice(slice)
-        });
-        Ok(buf)
-    }
 }
