@@ -17,6 +17,11 @@ crate-type = ["cdylib", "lib"]
 name = "main"
 path = "src/_main.rs"
 
+[[test]]
+name = "tests-main"
+path = "tests-main/main.rs"
+harness = false
+
 [build-dependencies]
 # neon-build = "0.4.2"
 
@@ -29,8 +34,9 @@ euclid = "0.22.1"
 take_mut = "0.2.2"
 lazy_static = "1.4.0"
 enum_dispatch = "0.3.3"
+floating-duration = "0.1.2"
 ref_clone = { path = "../../ref_clone/ref_clone/" }
 ref_clone_derive = { path = "../../ref_clone/ref_clone_derive/" }
 [dependencies.bevy]
-version = "^0.2.1"
-# git = "https://github.com/bevyengine/bevy"
+# version = "^0.2.1"
+git = "https://github.com/bevyengine/bevy"

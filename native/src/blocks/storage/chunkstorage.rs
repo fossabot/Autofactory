@@ -21,28 +21,42 @@ impl Debug for ChunkBlockStorage {
     }
 }
 
-impl BlockStorage for ChunkBlockStorage {
-    #[allow(clippy::needless_lifetimes)]
-    fn get_opt_env_ref<'a, T: RefType>(
-        self: Ref<'a, Self, T>,
+impl ChunkBlockStorage {
+    fn get_wrapped<'a, T: RefType>(
+        blocks: Ref<'a, Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>, T>,
         coords: BlockLocation,
-    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
-        if coords
-            .to_array()
-            .iter()
-            .any(|a| *a < 0 || *a >= CHUNK_SIZEI)
+    ) -> Option<Ref<'a, Block, T>> {
+        if Points::any(|a| a < 0 || a >= CHUNK_SIZEI, coords)
         {
             None
         } else {
-            let wr = self.to_wrapped();
-            Some((
-                wr.blocks
+            Some(
+                blocks
                     .deref_ref()
                     .index_ref(coords.x as usize)
                     .index_ref(coords.y as usize)
                     .index_ref(coords.z as usize),
-                BlockDataAccessor::new(coords, wr.env),
-            ))
+            )
+        }
+    }
+}
+
+impl BlockStorage for ChunkBlockStorage {
+    fn get_opt_ref<'a, T: RefType>(
+        self: Ref<'a, Self, T>,
+        coords: Point3D<i64>,
+    ) -> Option<Ref<'a, Block, T>> {
+        Self::get_wrapped(self.to_wrapped().blocks, coords)
+    }
+
+    fn get_opt_env_ref<'a, T: RefType>(
+        self: Ref<'a, Self, T>,
+        coords: Point3D<i64>,
+    ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
+        let ChunkBlockStorageRef { blocks, env } = self.to_wrapped();
+        match Self::get_wrapped(blocks, coords) {
+            Some(a) => Some((a, BlockDataAccessor::new(coords, env))),
+            None => None,
         }
     }
 }
@@ -54,7 +68,18 @@ impl UniqueEnvironmentBlockStorage for ChunkBlockStorage {
 }
 impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
     fn new(mut env: BlockEnvironment) -> Self {
-        let arr = array![|i| array![|j| array![|k| env.create_at(Point3D::new(i, j, k).to_i64(), Default::default(), Default::default(), Default::default()); CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE];
+        let arr =
+            array![|i|
+                array![|j|
+                    array![|k|
+                        env.create_at(
+                            Point3D::new(i, j, k).to_i64(),
+                            Default::default(),
+                            Default::default(),
+                            Default::default());
+                    CHUNK_SIZE];
+                CHUNK_SIZE];
+            CHUNK_SIZE];
         ChunkBlockStorage {
             env,
             blocks: Box::new(arr),
