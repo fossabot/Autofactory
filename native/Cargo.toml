@@ -35,6 +35,7 @@ take_mut = "0.2.2"
 lazy_static = "1.4.0"
 enum_dispatch = "0.3.3"
 floating-duration = "0.1.2"
+parking_lot = { version = "0.11.0", features = ["nightly"] }
 ref_clone = { path = "../../ref_clone/ref_clone/" }
 ref_clone_derive = { path = "../../ref_clone/ref_clone_derive/" }
 [dependencies.bevy]

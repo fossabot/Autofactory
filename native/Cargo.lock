@@ -1974,6 +1974,7 @@ dependencies = [
  "euclid",
  "floating-duration",
  "lazy_static",
+ "parking_lot",
  "rand",
  "ref_clone",
  "ref_clone_derive",

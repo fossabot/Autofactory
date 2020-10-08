@@ -37,6 +37,45 @@ pub trait BlockStorage {
     fn get_opt_mut(&mut self, coords: Point3D<i64>) -> Option<&mut Block> {
         Self::get_opt_ref(Ref::new(self), coords).map(|mut x| x.as_mut())
     }
+
+    type Iter<'a, T: RefType>: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>)>;
+
+    fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T>;
+
+    fn iter<'a>(&'a self) -> StorageIterator<'a, Shared, Self::Iter<'a, Shared>> {
+        StorageIterator(Ref::new(self).iter_ref())
+    }
+
+    fn iter_mut<'a>(&'a mut self) -> StorageIterator<'a, Unique, Self::Iter<'a, Unique>> {
+        StorageIterator(Ref::new(self).iter_ref())
+    }
+}
+
+#[repr(transparent)]
+pub struct StorageIterator<'a, T: RefType, S>(S)
+where
+    S: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>)>;
+
+impl<'a, S> Iterator for StorageIterator<'a, Shared, S>
+where
+    S: Iterator<Item = (BlockDataAccessor<'a, Shared>, Ref<'a, Block, Shared>)>,
+{
+    type Item = (BlockDataAccessor<'a, Shared>, &'a Block);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|x| (x.0, x.1.as_ref()))
+    }
+}
+
+impl<'a, S> Iterator for StorageIterator<'a, Unique, S>
+where
+    S: Iterator<Item = (BlockDataAccessor<'a, Unique>, Ref<'a, Block, Unique>)>,
+{
+    type Item = (BlockDataAccessor<'a, Unique>, &'a mut Block);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|x| (x.0, x.1.as_mut()))
+    }
 }
 
 pub trait InternalEnvironmentBlockStorage: BlockStorage {

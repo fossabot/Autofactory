@@ -1,4 +1,6 @@
+#![allow(incomplete_features)]
 #![feature(arbitrary_self_types)]
+#![feature(generic_associated_types)]
 //! The native component of the game.
 //!
 //! This will consist of everything apart from the user input and UI.

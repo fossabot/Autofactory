@@ -1,38 +1,49 @@
 use super::*;
+use parking_lot::RwLock;
 use ref_clone::*;
 use ref_clone_derive::*;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::ops::Index;
 use std::ops::IndexMut;
 use types::BlockTypes;
 
-pub type ExternalBlockDataStorage = HashMap<BlockLocation, BlockData>;
+pub type ExternalBlockDataStorage = RwLock<HashMap<BlockLocation, BlockData>>;
 #[derive(Debug)]
 pub struct BlockDataAccessor<'a, T: RefType> {
     // TODO: FIX AND REPLACE BLOCKTYPE
     pub location: BlockLocation,
-    pub storage: Ref<'a, BlockEnvironment, T>,
+    pub storage: &'a BlockEnvironment,
+    _marker: PhantomData<T>,
 }
 
 impl<'a, T: RefType> BlockDataAccessor<'a, T> {
     pub fn access_ref(self) -> Ref<'a, BlockData, T> {
-        self.storage.index_ref(self.location)
+        unsafe { Ref::__new_unsafe(&*self.storage.get_mut(self.location)) }
     }
 
-    pub fn new(location: BlockLocation, storage: Ref<'a, BlockEnvironment, T>) -> Self {
-        BlockDataAccessor { location, storage }
+    pub fn location(&self) -> BlockLocation {
+        self.location
+    }
+
+    pub fn new(location: BlockLocation, storage: &'a BlockEnvironment) -> Self {
+        BlockDataAccessor {
+            location,
+            storage,
+            _marker: PhantomData,
+        }
     }
 }
 
 impl<'a> BlockDataAccessor<'a, Shared> {
     pub fn access(self) -> &'a BlockData {
-        &self.storage.as_ref()[self.location]
+        &self.storage[self.location]
     }
 }
 
 impl<'a> BlockDataAccessor<'a, Unique> {
     pub fn access(mut self) -> &'a mut BlockData {
-        &mut self.storage.as_mut()[self.location]
+        &mut self.storage[self.location]
     }
 
     pub fn rewrite(self, block: &mut Block, ty: BlockTypes, rotation: Rotation, stress: Stress) {
@@ -46,14 +57,14 @@ impl<'a> BlockDataAccessor<'a, Unique> {
 }
 
 #[RefAccessors]
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct BlockEnvironment {
     storage: ExternalBlockDataStorage,
 }
 
 impl BlockEnvironment {
     pub fn create_at(
-        &mut self,
+        &self,
         position: BlockLocation,
         ty: BlockTypes,
         rotation: Rotation,
@@ -64,27 +75,37 @@ impl BlockEnvironment {
             rotation,
             stress,
         };
-        ty.create(block, BlockDataAccessor::new(position, Ref::new(self)));
+        ty.create(block, BlockDataAccessor::new(position, self));
         block
     }
 
-    pub fn insert(&mut self, position: BlockLocation, data: BlockData) {
-        self.storage.insert(position, data);
+    pub fn get(&self, position: BlockLocation) -> &BlockData {
+        match self.storage.read().get(&position) {
+            Some(x) => x,
+            None => {
+                let write = self.storage.write();
+                write.entry(position).or_insert([0; 32])
+            }
+        }
     }
 
-    pub fn get(&self, position: &BlockLocation) -> BlockData {
-        self.storage[position]
+    pub fn get_mut(&self, position: BlockLocation) -> &mut BlockData {
+        let write = self.storage.write();
+        match write.get_mut(&position) {
+            Some(x) => x,
+            None => write.entry(position).or_insert([0; 32]),
+        }
     }
 
     pub fn append_mesh(
-        &mut self,
+        &self,
         (position, block): PositionedBlock,
         transform: Transform3D<f32>,
         mesh: &mut Mesh,
     ) {
         block.block_type.append_mesh(
             block,
-            BlockDataAccessor::new(position, Ref::new(self)),
+            BlockDataAccessor::new(position, self),
             transform,
             mesh,
         );
@@ -92,33 +113,29 @@ impl BlockEnvironment {
 
     pub fn new() -> Self {
         BlockEnvironment {
-            storage: HashMap::new(),
+            storage: RwLock::new(HashMap::new()),
         }
-    }
-}
-
-#[allow(clippy::needless_lifetimes)]
-impl IndexRef<BlockLocation> for BlockEnvironment {
-    type Output = BlockData;
-    fn index_ref<'a, S: RefType>(
-        self: Ref<'a, Self, S>,
-        position: BlockLocation,
-    ) -> Ref<'a, BlockData, S> {
-        unsafe { Ref::__new_unsafe(&self.__value().storage.index(&position)) }
     }
 }
 
 impl Index<BlockLocation> for BlockEnvironment {
     type Output = BlockData;
     fn index(&self, position: BlockLocation) -> &BlockData {
-        &self.storage[&position]
+        self.get(position)
     }
 }
 
 impl IndexMut<BlockLocation> for BlockEnvironment {
     fn index_mut(&mut self, position: BlockLocation) -> &mut BlockData {
-        let entry = self.storage.entry(position);
-        entry.or_insert([0; 32])
+        self.get_mut(position)
+    }
+}
+
+impl Clone for BlockEnvironment {
+    fn clone(&self) -> Self {
+        BlockEnvironment {
+            storage: RwLock::new(self.storage.read().clone()),
+        }
     }
 }
 

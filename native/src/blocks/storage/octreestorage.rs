@@ -213,6 +213,12 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
     }
 }
 
+pub struct OctreeIter<'a, T: RefType> {
+    tree: Ref<'a, OctreeBlockStorage, T>,
+    stack: Vec<Ref<'a, Branch, T>>,
+    ci: ChunkIter<'a, T>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

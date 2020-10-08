@@ -26,7 +26,7 @@ fn print_vertices() {
 #[test]
 fn print_chunk() {
     let chunk = ChunkBlockStorage::new(BlockEnvironment::new());
-    chunk.into_iter().for_each(|x| println!("{:?}", x));
+    chunk.iter().for_each(|x| println!("{:?}", x));
 }
 
 #[test]
