@@ -54,6 +54,10 @@ impl<'a> BlockDataAccessor<'a, Unique> {
         };
         ty.create(*block, self);
     }
+
+    pub fn create(self, block: &mut Block, ty: BlockTypes, rotation: Rotation, stress: Stress) {
+        self.rewrite(block, ty, rotation, stress)
+    }
 }
 
 #[RefAccessors]

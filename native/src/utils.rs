@@ -8,11 +8,11 @@ use types::*;
 
 pub fn generate_random_chunk(env: BlockEnvironment) -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new(env);
-    let (iter, env) = (&mut chunk).iter_mut_with_env();
-    for x in iter {
+    let iter = (&mut chunk).iter_mut();
+    for (a, x) in iter {
         if random::<bool>() {
-            *x.1 = env.create_at(
-                x.0,
+            a.create(
+                x,
                 example::Example.into(),
                 Default::default(),
                 Default::default(),

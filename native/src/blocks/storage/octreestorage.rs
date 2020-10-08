@@ -1,4 +1,5 @@
 // TODO: MAKE THE OCTREE AUTOMATICALLY REPLACE EMPTY CHUNKS WITH AIR AND EMPTY BRANCHES WITH AIR
+// TODO: FIX TAIL CALLS
 use super::*;
 use array_macro::*;
 use chunkstorage::*;
@@ -139,6 +140,12 @@ impl BlockStorage for OctreeBlockStorage {
     ) -> Option<(Ref<'a, Block, T>, BlockDataAccessor<'a, T>)> {
         self.to_wrapped().root.get_opt_ref(pos)
     }
+
+    type Iter<'a, T: RefType> = OctreeIter<'a, T>;
+
+    fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T> {
+        OctreeIter::new(self)
+    }
 }
 
 impl InternalEnvironmentBlockStorage for OctreeBlockStorage {
@@ -216,7 +223,23 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
 pub struct OctreeIter<'a, T: RefType> {
     tree: Ref<'a, OctreeBlockStorage, T>,
     stack: Vec<Ref<'a, Branch, T>>,
-    ci: ChunkIter<'a, T>,
+    ci: Option<ChunkIter<'a, T>>,
+}
+
+impl<'a, T: RefType> Iterator for OctreeIter<'a, T> {
+    type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
+
+    fn next(&mut self) -> Option<Self::Item> { todo!() }
+}
+
+impl<'a, T: RefType> OctreeIter<'a, T> {
+    fn new(storage: Ref<'a, OctreeBlockStorage, T>) -> Self {
+        OctreeIter {
+            tree: storage,
+            stack: vec![],
+            ci: None,
+        }
+    }
 }
 
 #[cfg(test)]

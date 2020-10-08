@@ -70,7 +70,7 @@ impl UniqueEnvironmentBlockStorage for ChunkBlockStorage {
     }
 }
 impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
-    fn new(mut env: BlockEnvironment) -> Self {
+    fn new(env: BlockEnvironment) -> Self {
         let arr = array![|i|
                 array![|j|
                     array![|k|
@@ -93,10 +93,11 @@ impl ChunkBlockStorage {
     pub fn append_mesh(&mut self, transform: Transform3D<f32>, mesh: &mut Mesh) {
         let iter = self.iter_mut();
         iter.for_each(|(accessor, a)| {
+            let loc = accessor.location().to_vector().to_f32();
             a.block_type.append_mesh(
                 *a,
                 accessor,
-                transform.pre_translate(accessor.location().to_vector().to_f32()),
+                transform.pre_translate(loc),
                 mesh,
             );
         });
@@ -115,7 +116,7 @@ pub struct ChunkIter<'a, T: RefType> {
 }
 impl<'a, T: RefType> Iterator for ChunkIter<'a, T> {
     type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
-    fn next(&mut self) -> Option<(BlockDataAccessor<'a, T>, Ref<'a, Block, T>)> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.z += 1;
         if self.z >= CHUNK_SIZEI {
             self.z = 0;
