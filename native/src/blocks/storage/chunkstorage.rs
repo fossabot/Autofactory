@@ -59,6 +59,8 @@ impl BlockStorage for ChunkBlockStorage {
         }
     }
     type Iter<'a, T: RefType> = ChunkIter<'a, T>;
+
+    #[allow(clippy::needless_lifetimes)]
     fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T> {
         ChunkIter::new(self)
     }

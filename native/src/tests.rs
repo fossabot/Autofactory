@@ -7,7 +7,7 @@ use types::*;
 
 #[test]
 fn print_vertices() {
-    let mut env = BlockEnvironment::new();
+    let env = BlockEnvironment::new();
     let block = env.create_at(
         Point3D::new(0, 0, 0),
         example::Example.into(),

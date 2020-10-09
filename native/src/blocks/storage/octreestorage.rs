@@ -144,6 +144,7 @@ impl BlockStorage for OctreeBlockStorage {
 
     type Iter<'a, T: RefType> = OctreeIter<'a, T>;
 
+    #[allow(clippy::needless_lifetimes)]
     fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T> {
         OctreeIter::new(self)
     }
@@ -253,13 +254,15 @@ mod tests {
     fn test_simple_access() {
         let mut storage = OctreeBlockStorage::new();
         storage.get_mut(Point3D::new(0, 0, 0));
-        assert_eq!(format!("{:?}", storage), "OctreeBlockStorage { root: ChunkLeaf(ChunkLeaf { location: (0, 0, 0), chunk: ChunkBlockStorage(...) }), aabb: Box3D((0, 0, 0), (16, 16, 16)) }");
+        assert_eq!(format!("{:?}", storage),
+"OctreeBlockStorage { root: ChunkLeaf(ChunkLeaf { location: (0, 0, 0), chunk: ChunkBlockStorage(...) }), aabb: Box3D((0, 0, 0), (16, 16, 16)) }");
     }
     #[test]
     fn test_complex_access() {
         let mut storage = OctreeBlockStorage::new();
         let accessor = storage.get_mut(Point3D::new(0, 0, CHUNK_SIZEI));
-        assert_eq!(format!("{:?}", accessor), "(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockDataAccessor { location: (0, 0, 0), storage: BlockEnvironment { storage: {} } })");
+        assert_eq!(format!("{:?}", accessor),
+"(Block { block_type: Vacuum(Vacuum), rotation: Rotation { value: 0 }, stress: 0 }, BlockDataAccessor { location: (0, 0, 0), storage: BlockEnvironment { storage: RwLock { data: {} } }, _marker: PhantomData })");
     }
     #[test]
     fn test_block_writing() {
@@ -280,7 +283,8 @@ mod tests {
             }
         );
 
-        assert_eq!(format!("{:?}", storage.get_opt(Point3D::new(0, 0, CHUNK_SIZEI))), "Some(Block { block_type: Example(Example), rotation: Rotation { value: 0 }, stress: 0 })");
+        assert_eq!(format!("{:?}", storage.get_opt(Point3D::new(0, 0, CHUNK_SIZEI))),
+"Some(Block { block_type: Example(Example), rotation: Rotation { value: 0 }, stress: 0 })");
         assert_eq!(None, storage.get_opt(Point3D::new(99999, 99999, 99999)));
     }
     #[test]

@@ -19,13 +19,13 @@ impl BlockType for Test {
     }
 
     fn do_thing(self, _: Block, accessor: BlockDataAccessor<Unique>) -> String {
-        let data = accessor.access();
+        let mut data = accessor.access();
         let res = if data[0] == 0 {
             "Test: Zero"
         } else {
             "Test: One"
         };
-        data[0] = data[0] + 1;
+        data[0] += 1;
         res.to_string()
     }
 }

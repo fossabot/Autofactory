@@ -40,13 +40,14 @@ pub trait BlockStorage {
 
     type Iter<'a, T: RefType>: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>)>;
 
+    #[allow(clippy::needless_lifetimes)]
     fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T>;
 
-    fn iter<'a>(&'a self) -> StorageIterator<'a, Shared, Self::Iter<'a, Shared>> {
+    fn iter(&self) -> StorageIterator<Shared, Self::Iter<'_, Shared>> {
         StorageIterator(Ref::new(self).iter_ref())
     }
 
-    fn iter_mut<'a>(&'a mut self) -> StorageIterator<'a, Unique, Self::Iter<'a, Unique>> {
+    fn iter_mut(&mut self) -> StorageIterator<Unique, Self::Iter<'_, Unique>> {
         StorageIterator(Ref::new(self).iter_ref())
     }
 }
@@ -74,7 +75,7 @@ where
     type Item = (BlockDataAccessor<'a, Unique>, &'a mut Block);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|x| (x.0, x.1.as_mut()))
+        self.0.next().map(|mut x| (x.0, x.1.as_mut()))
     }
 }
 

@@ -1,12 +1,18 @@
 use super::*;
+use parking_lot::MappedRwLockReadGuard;
+use parking_lot::MappedRwLockWriteGuard;
 use parking_lot::RwLock;
+use parking_lot::RwLockReadGuard;
+use parking_lot::RwLockWriteGuard;
+
 use ref_clone::*;
 use ref_clone_derive::*;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::ops::Index;
-use std::ops::IndexMut;
 use types::BlockTypes;
+
+type ReadLock<'a> = MappedRwLockReadGuard<'a, BlockData>;
+type WriteLock<'a> = MappedRwLockWriteGuard<'a, BlockData>;
 
 pub type ExternalBlockDataStorage = RwLock<HashMap<BlockLocation, BlockData>>;
 #[derive(Debug)]
@@ -18,10 +24,6 @@ pub struct BlockDataAccessor<'a, T: RefType> {
 }
 
 impl<'a, T: RefType> BlockDataAccessor<'a, T> {
-    pub fn access_ref(self) -> Ref<'a, BlockData, T> {
-        unsafe { Ref::__new_unsafe(&*self.storage.get_mut(self.location)) }
-    }
-
     pub fn location(&self) -> BlockLocation {
         self.location
     }
@@ -36,14 +38,14 @@ impl<'a, T: RefType> BlockDataAccessor<'a, T> {
 }
 
 impl<'a> BlockDataAccessor<'a, Shared> {
-    pub fn access(self) -> &'a BlockData {
-        &self.storage[self.location]
+    pub fn access(self) -> ReadLock<'a> {
+        self.storage.get(self.location)
     }
 }
 
 impl<'a> BlockDataAccessor<'a, Unique> {
-    pub fn access(mut self) -> &'a mut BlockData {
-        &mut self.storage[self.location]
+    pub fn access(self) -> WriteLock<'a> {
+        self.storage.get_mut(self.location)
     }
 
     pub fn rewrite(self, block: &mut Block, ty: BlockTypes, rotation: Rotation, stress: Stress) {
@@ -83,22 +85,21 @@ impl BlockEnvironment {
         block
     }
 
-    pub fn get(&self, position: BlockLocation) -> &BlockData {
-        match self.storage.read().get(&position) {
-            Some(x) => x,
-            None => {
-                let write = self.storage.write();
-                write.entry(position).or_insert([0; 32])
+    pub fn get(&self, position: BlockLocation) -> ReadLock {
+        match RwLockReadGuard::try_map(self.storage.read(), |x| x.get(&position)) {
+            Ok(x) => x,
+            Err(_) => {
+                let mut write = self.storage.write();
+                write.insert(position, [0; 32]);
+                RwLockReadGuard::map(self.storage.read(), |x| &x[&position])
             }
         }
     }
 
-    pub fn get_mut(&self, position: BlockLocation) -> &mut BlockData {
-        let write = self.storage.write();
-        match write.get_mut(&position) {
-            Some(x) => x,
-            None => write.entry(position).or_insert([0; 32]),
-        }
+    pub fn get_mut(&self, position: BlockLocation) -> WriteLock {
+        RwLockWriteGuard::map(self.storage.write(), |x| {
+            x.entry(position).or_insert([0; 32])
+        })
     }
 
     pub fn append_mesh(
@@ -119,19 +120,6 @@ impl BlockEnvironment {
         BlockEnvironment {
             storage: RwLock::new(HashMap::new()),
         }
-    }
-}
-
-impl Index<BlockLocation> for BlockEnvironment {
-    type Output = BlockData;
-    fn index(&self, position: BlockLocation) -> &BlockData {
-        self.get(position)
-    }
-}
-
-impl IndexMut<BlockLocation> for BlockEnvironment {
-    fn index_mut(&mut self, position: BlockLocation) -> &mut BlockData {
-        self.get_mut(position)
     }
 }
 
