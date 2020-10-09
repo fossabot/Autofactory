@@ -14,7 +14,7 @@
         "@implode-nz/html": "^6.0.0",
         "electron": "^9.1.2",
         "stats.js": "^0.17.0",
-        "three": "^0.119.1"
+        "three": "^0.121.1"
     },
     "devDependencies": {
         "@prettier/plugin-pug": "^1.5.0",
