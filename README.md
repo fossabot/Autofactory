@@ -2,12 +2,31 @@
 
 # NE
 
-This game is a 3 dimensional voxel physics pvp game with building. The teams should be able to respond to enemy actions by building fast.
+Please read for an explanation of what this is: https://youxplode.com/md.html?Autofactory
 
-There will not be a single voxel grid; there will be many seperate grids which can be rotated seperately from each other, and have collision dynamics between them.
+## Compiling
 
-The game is set in space, with asteroids of many sizes. Everything should be destructable and made out of voxels. The game will not have seperate things like an "asteroid" as a single entity; an asteroid will be a collection of blocks.
+To compile the Rust part of the program, run
 
-The game should not have a large set of block types; most built-in stuff should be constructible from a small set of blocks. The game will have rotatable joints.
+```bash
+> cd native
+> cargo build
+```
 
-This game was originally going to have space bending, but space bending would not make the game much better, so I removed it.
+This assumes that you have [`rustup`](https://rustup.rs/) installed and a nightly version of the compiler as the default.
+
+To compile the JavaScript part of the program, and link it with the Rust part, run<sup>[1](#fn1)</sup>
+
+```bash
+> pnpm run build
+```
+
+Start using
+
+```bash
+pnpm run start
+```
+
+---
+
+<a name="fn1">1</a>: Install `pnpm` using `npm install --global pnpm`.
