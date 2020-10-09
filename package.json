@@ -12,7 +12,7 @@
     "license": "GPL-3.0-only",
     "dependencies": {
         "@implode-nz/html": "^6.0.0",
-        "electron": "^9.1.2",
+        "electron": "^10.1.3",
         "stats.js": "^0.17.0",
         "three": "^0.119.1"
     },
