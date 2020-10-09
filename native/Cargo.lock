@@ -2353,10 +2353,12 @@ checksum = "41cc0f7e4d5d4544e8861606a285bb08d3e70712ccc7d2b84d7c0ccfaf4b05ce"
 [[package]]
 name = "ref_clone"
 version = "0.5.0"
+source = "git+https://github.com/iMplode-nZ/ref_clone/#7dc7fbefa46dc95e0872620220870dd9129f24d7"
 
 [[package]]
 name = "ref_clone_derive"
 version = "0.6.0"
+source = "git+https://github.com/iMplode-nZ/ref_clone/#7dc7fbefa46dc95e0872620220870dd9129f24d7"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -94,12 +94,8 @@ impl ChunkBlockStorage {
         let iter = self.iter_mut();
         iter.for_each(|(accessor, a)| {
             let loc = accessor.location().to_vector().to_f32();
-            a.block_type.append_mesh(
-                *a,
-                accessor,
-                transform.pre_translate(loc),
-                mesh,
-            );
+            a.block_type
+                .append_mesh(*a, accessor, transform.pre_translate(loc), mesh);
         });
     }
 }
@@ -147,9 +143,7 @@ impl<'a, T: RefType> Iterator for ChunkIter<'a, T> {
 }
 
 impl<'a, T: RefType> ChunkIter<'a, T> {
-    fn new(
-        storage: Ref<'a, ChunkBlockStorage, T>
-    ) -> Self {
+    fn new(storage: Ref<'a, ChunkBlockStorage, T>) -> Self {
         let ChunkBlockStorageRef { blocks, env } = storage.to_wrapped();
         let env = env.as_ref();
         let mut xi = blocks.deref_ref().into_iter();

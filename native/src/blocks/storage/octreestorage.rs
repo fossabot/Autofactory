@@ -1,5 +1,5 @@
-// TODO: MAKE THE OCTREE AUTOMATICALLY REPLACE EMPTY CHUNKS WITH AIR AND EMPTY BRANCHES WITH AIR
-// TODO: FIX TAIL CALLS
+// TODO: MAKE THE OCTREE AUTOMATICALLY REPLACE EMPTY CHUNKS WITH AIR AND EMPTY
+// BRANCHES WITH AIR TODO: FIX TAIL CALLS
 use super::*;
 use array_macro::*;
 use chunkstorage::*;
@@ -23,7 +23,8 @@ pub struct AirLeaf {
 pub struct Branch {
     /// Location of the center of the branch.
     pub location: Point3D<i64>,
-    /// Each of the branches; the 0th index is the negative branch. The arrays proceed in order of `x`, `y`, and `z`.
+    /// Each of the branches; the 0th index is the negative branch. The arrays
+    /// proceed in order of `x`, `y`, and `z`.
     pub trees: [[[Box<Node>; 2]; 2]; 2],
     /// Size of 1 tree branch. This is a power of two.
     pub size: i64,
@@ -229,7 +230,9 @@ pub struct OctreeIter<'a, T: RefType> {
 impl<'a, T: RefType> Iterator for OctreeIter<'a, T> {
     type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
 
-    fn next(&mut self) -> Option<Self::Item> { todo!() }
+    fn next(&mut self) -> Option<Self::Item> {
+        todo!()
+    }
 }
 
 impl<'a, T: RefType> OctreeIter<'a, T> {

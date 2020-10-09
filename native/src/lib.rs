@@ -11,7 +11,8 @@ pub mod blocks;
 pub mod entity;
 /// The main code that runs the rust end.
 pub mod main;
-/// All rendering related stuff. This currently only includes a small mesh implementation that gets sent to the JavaScript part.
+/// All rendering related stuff. This currently only includes a small mesh
+/// implementation that gets sent to the JavaScript part.
 pub mod rendering;
 /// Random stuff that doesn't belong anywhere else.
 pub mod utils;

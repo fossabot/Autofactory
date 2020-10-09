@@ -9,8 +9,9 @@ pub trait BlockType: Debug + Copy {
 
     /// Appends the block's mesh to the global Mesh.
     ///
-    /// All values in the block should be normalized to [-0.5 to 0.5] assuming that the translation and rotation are not applied.
-    /// The translation is applied first, then the rotation.
+    /// All values in the block should be normalized to [-0.5 to 0.5] assuming
+    /// that the translation and rotation are not applied. The translation
+    /// is applied first, then the rotation.
     fn append_mesh(
         self,
         block: Block,
