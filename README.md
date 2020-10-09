@@ -24,7 +24,7 @@ To compile the JavaScript part of the program, and link it with the Rust part, r
 Start using
 
 ```bash
-pnpm run start
+> pnpm run start
 ```
 
 ---
