@@ -15,7 +15,6 @@ pub fn movement_system(dt: Res<Time>, mut pos: Mut<Position>, vel: &Velocity) {
 mod tests {
     use super::*;
 
-    #[allow(dead_code)]
     fn setup(mut commands: Commands) {
         commands.spawn((
             Position(Point3D::new(0.0, 0.0, 0.0)),
@@ -23,7 +22,6 @@ mod tests {
         ));
     }
 
-    #[allow(dead_code)]
     fn log_system(pos: &Position) {
         println!("{:?}", pos);
     }
