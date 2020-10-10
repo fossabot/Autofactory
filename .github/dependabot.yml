@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      prefix: "pnpm"
+      prefix: "npm"
   - package-ecosystem: "cargo"
     directory: "/native"
     schedule:

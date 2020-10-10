@@ -234,6 +234,11 @@ impl<'a, T: RefType> Iterator for OctreeIter<'a, T> {
     type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
 
     fn next(&mut self) -> Option<Self::Item> {
+        if let Some(iter) = (&mut self.ci).as_mut() {
+            if let Some(next) = iter.next() {
+                return Some(next);
+            }
+        }
         todo!()
     }
 }

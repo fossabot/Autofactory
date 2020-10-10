@@ -1,6 +1,10 @@
 name: Rust
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
@@ -39,15 +43,29 @@ jobs:
         profile: minimal
         toolchain: nightly
         override: true
-    - if: matrix.os == 'ubuntu-latest'
+    - name: Install Dependencies
+      if: matrix.os == 'ubuntu-latest'
       run: sudo apt install libasound2-dev libudev-dev pkg-config
     - name: Attempt build
       uses: actions-rs/cargo@v1
       with:
         command: check
         args: --all-features --manifest-path ./native/Cargo.toml
+    - if: matrix.os == 'ubuntu-latest'
+      name: Clean
+      uses: actions-rs/cargo@v1
+      with:
+        command: clean
     - name: Run tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all-features --manifest-path ./native/Cargo.toml
+        args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
+      env:
+        CARGO_INCREMENTAL: '0'
+        RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+        RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+    - if: matrix.os == 'ubuntu-latest'
+      id: coverage
+      name: Test coverage
+      uses: actions-rs/grcov@v0.1
