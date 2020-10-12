@@ -72,6 +72,8 @@ jobs:
         with:
           command: test
           args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
+      - name: Find
+        run: find | grep *.gcov
       - name: Test coverage
         id: coverage
         uses: actions-rs/grcov@v0.1
