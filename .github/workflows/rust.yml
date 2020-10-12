@@ -51,20 +51,27 @@ jobs:
       with:
         command: check
         args: --all-features --manifest-path ./native/Cargo.toml
-    - if: matrix.os == 'ubuntu-latest'
-      name: Clean
-      uses: actions-rs/cargo@v1
-      with:
-        command: clean
-        args: --manifest-path ./native/Cargo.toml
     - name: Run tests
       uses: actions-rs/cargo@v1
       with:
         command: test
         args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
-      env:
-        CARGO_INCREMENTAL: '0'
-        RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+  coverage:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+    - name: Install Dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install libasound2-dev libudev-dev
+    - if: matrix.os == 'ubuntu-latest'
+      name: Coverage tests
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml\
     - if: matrix.os == 'ubuntu-latest'
       id: coverage
       name: Test coverage
