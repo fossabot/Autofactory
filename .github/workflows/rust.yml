@@ -71,7 +71,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml\
+          args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
       - name: Test coverage
         id: coverage
         uses: actions-rs/grcov@v0.1
