@@ -1977,7 +1977,7 @@ dependencies = [
  "parking_lot",
  "rand",
  "ref_clone",
- "ref_clone_derive",
+ "ref_clone_derive 0.6.0",
  "static_assertions",
  "take_mut",
 ]
@@ -2351,15 +2351,29 @@ checksum = "41cc0f7e4d5d4544e8861606a285bb08d3e70712ccc7d2b84d7c0ccfaf4b05ce"
 
 [[package]]
 name = "ref_clone"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cccebc6b8e00f11efadbb21068aec7138ad57e2418bb09d6a0c02a50295d9cc"
+checksum = "7ddd1fa62cc8fb12c82ae3abda496a56e13d29955e5667ec4815abc33915505d"
+dependencies = [
+ "ref_clone_derive 0.7.0",
+]
 
 [[package]]
 name = "ref_clone_derive"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcd52dce3fb549efad80928043c86abe23662341f6e018fafdfacf5c531044dc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "ref_clone_derive"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "488fa02d06e45e4c267268ce6a6c8b1afd7c3169969a6c8d2c5dfddedb9b748e"
 dependencies = [
  "proc-macro2",
  "quote",
