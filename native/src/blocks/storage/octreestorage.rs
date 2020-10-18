@@ -225,8 +225,8 @@ impl UnboundedBlockStorage for OctreeBlockStorage {
 }
 
 pub struct OctreeIter<'a, T: RefType> {
-    tree: Ref<'a, OctreeBlockStorage, T>,
-    stack: Vec<Ref<'a, Branch, T>>,
+    stack: Vec<(Ref<'a, Branch, T>, i8)>,
+    location: Point3D<i64>,
     ci: Option<ChunkIter<'a, T>>,
 }
 
@@ -245,10 +245,30 @@ impl<'a, T: RefType> Iterator for OctreeIter<'a, T> {
 
 impl<'a, T: RefType> OctreeIter<'a, T> {
     fn new(storage: Ref<'a, OctreeBlockStorage, T>) -> Self {
-        OctreeIter {
-            tree: storage,
-            stack: vec![],
-            ci: None,
+        match storage.to_wrapped().root.to_wrapped() {
+            NodeRef::AirLeaf(al) => {
+                OctreeIter {
+                    stack: vec![],
+                    location: al.location,
+                    ci: None,
+                }
+            }
+            NodeRef::ChunkLeaf(_cl) => {
+                let cl = _cl.to_wrapped();
+                OctreeIter {
+                    stack: vec![],
+                    location: *cl.location,
+                    ci: Some(cl.chunk.iter_ref()),
+                }
+            }
+            NodeRef::Branch(branch) => {
+                let location = branch.location;
+                OctreeIter {
+                    stack: vec![(branch, -1)],
+                    location,
+                    ci: None,
+                }
+            }
         }
     }
 }
