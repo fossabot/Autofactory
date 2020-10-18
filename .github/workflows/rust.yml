@@ -56,24 +56,3 @@ jobs:
       with:
         command: test
         args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - name: Install Dependencies
-        run: sudo apt install libasound2-dev libudev-dev
-      - name: Coverage tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
-      - name: Find
-        run: find | grep gcov
-      - name: Test coverage
-        id: coverage
-        uses: actions-rs/grcov@v0.1

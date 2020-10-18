@@ -94,8 +94,8 @@ impl ExternalEnvironmentBlockStorage for ChunkBlockStorage {
 impl ChunkBlockStorage {
     pub fn append_mesh(&mut self, transform: Transform3D<f32>, mesh: &mut Mesh) {
         let iter = self.iter_mut();
-        iter.for_each(|(accessor, a)| {
-            let loc = accessor.location().to_vector().to_f32();
+        iter.for_each(|(accessor, a, location)| {
+            let loc = location.to_vector().to_f32();
             a.block_type
                 .append_mesh(*a, accessor, transform.pre_translate(loc), mesh);
         });
@@ -113,7 +113,7 @@ pub struct ChunkIter<'a, T: RefType> {
     z: i64,
 }
 impl<'a, T: RefType> Iterator for ChunkIter<'a, T> {
-    type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
+    type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation);
     fn next(&mut self) -> Option<Self::Item> {
         self.z += 1;
         if self.z >= CHUNK_SIZEI {
@@ -129,9 +129,11 @@ impl<'a, T: RefType> Iterator for ChunkIter<'a, T> {
             }
             self.zi = self.yi.next().unwrap().into_iter();
         }
+        let point = Point3D::new(self.x, self.y, self.z);
         Some((
-            BlockDataAccessor::new(Point3D::new(self.x, self.y, self.z), self.env),
+            BlockDataAccessor::new(point, self.env),
             self.zi.next().unwrap(),
+            point,
         ))
     }
     fn size_hint(&self) -> (usize, Option<usize>) {

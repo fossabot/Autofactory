@@ -231,19 +231,49 @@ pub struct OctreeIter<'a, T: RefType> {
 }
 
 impl<'a, T: RefType> Iterator for OctreeIter<'a, T> {
-    type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>);
+    type Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(iter) = (&mut self.ci).as_mut() {
-            if let Some(next) = iter.next() {
-                return Some(next);
+        for _ in 0..2 {
+            self.next_chunk();
+            if let Some(iter) = (&mut self.ci).as_mut() {
+                if let Some(next) = iter.next() {
+                    return Some((next.0, next.1, next.2 + self.location.to_vector()));
+                }
             }
         }
-        todo!()
+        None
     }
 }
 
 impl<'a, T: RefType> OctreeIter<'a, T> {
+    fn next_chunk(&mut self) {
+        fn get_at(a: i8, idx: usize) -> usize {
+            return (a >> idx & 1) as usize;
+        }
+        while self.ci.is_none() {
+            let len = self.stack.len();
+            let last = &mut self.stack[len - 1];
+            let mut idx = last.1;
+            idx += 1;
+            if idx > 8 {
+                self.stack.pop();
+            } else {
+                match last.0.to_wrapped().trees.index_ref(get_at(idx, 0)).index_ref(get_at(idx, 1)).index_ref(get_at(idx, 2)).deref_ref().to_wrapped() {
+                    NodeRef::AirLeaf(_) => {},
+                    NodeRef::ChunkLeaf(_cl) => {
+                        let cl = _cl.to_wrapped();
+                        self.location = *cl.location;
+                        self.ci = Some(cl.chunk.iter_ref());
+                    }
+                    NodeRef::Branch(branch) => {
+                        self.stack.push((branch, -1));
+                    }
+                }
+            }
+        }
+    }
+
     fn new(storage: Ref<'a, OctreeBlockStorage, T>) -> Self {
         match storage.to_wrapped().root.to_wrapped() {
             NodeRef::AirLeaf(al) => {

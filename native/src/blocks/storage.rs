@@ -1,6 +1,5 @@
 use super::*;
 use ref_clone::*;
-use ref_clone_derive::*;
 
 pub trait BlockStorage {
     fn get_opt_env_ref<'a, T: RefType>(
@@ -38,7 +37,7 @@ pub trait BlockStorage {
         Self::get_opt_ref(Ref::new(self), coords).map(|mut x| x.as_mut())
     }
 
-    type Iter<'a, T: RefType>: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>)>;
+    type Iter<'a, T: RefType>: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation)>;
 
     #[allow(clippy::needless_lifetimes)]
     fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T>;
@@ -55,27 +54,27 @@ pub trait BlockStorage {
 #[repr(transparent)]
 pub struct StorageIterator<'a, T: RefType, S>(S)
 where
-    S: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>)>;
+    S: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation)>;
 
 impl<'a, S> Iterator for StorageIterator<'a, Shared, S>
 where
-    S: Iterator<Item = (BlockDataAccessor<'a, Shared>, Ref<'a, Block, Shared>)>,
+    S: Iterator<Item = (BlockDataAccessor<'a, Shared>, Ref<'a, Block, Shared>, BlockLocation)>,
 {
-    type Item = (BlockDataAccessor<'a, Shared>, &'a Block);
+    type Item = (BlockDataAccessor<'a, Shared>, &'a Block, BlockLocation);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|x| (x.0, x.1.as_ref()))
+        self.0.next().map(|x| (x.0, x.1.as_ref(), x.2))
     }
 }
 
 impl<'a, S> Iterator for StorageIterator<'a, Unique, S>
 where
-    S: Iterator<Item = (BlockDataAccessor<'a, Unique>, Ref<'a, Block, Unique>)>,
+    S: Iterator<Item = (BlockDataAccessor<'a, Unique>, Ref<'a, Block, Unique>, BlockLocation)>,
 {
-    type Item = (BlockDataAccessor<'a, Unique>, &'a mut Block);
+    type Item = (BlockDataAccessor<'a, Unique>, &'a mut Block, BlockLocation);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|mut x| (x.0, x.1.as_mut()))
+        self.0.next().map(|mut x| (x.0, x.1.as_mut(), x.2))
     }
 }
 

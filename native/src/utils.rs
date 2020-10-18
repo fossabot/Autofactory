@@ -9,7 +9,7 @@ use types::*;
 pub fn generate_random_chunk(env: BlockEnvironment) -> ChunkBlockStorage {
     let mut chunk = ChunkBlockStorage::new(env);
     let iter = (&mut chunk).iter_mut();
-    for (a, x) in iter {
+    for (a, x, _) in iter {
         if random::<bool>() {
             a.create(
                 x,

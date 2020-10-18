@@ -6,7 +6,6 @@ use parking_lot::RwLockReadGuard;
 use parking_lot::RwLockWriteGuard;
 
 use ref_clone::*;
-use ref_clone_derive::*;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use types::BlockTypes;
@@ -17,17 +16,12 @@ type WriteLock<'a> = MappedRwLockWriteGuard<'a, BlockData>;
 pub type ExternalBlockDataStorage = RwLock<HashMap<BlockLocation, BlockData>>;
 #[derive(Debug)]
 pub struct BlockDataAccessor<'a, T: RefType> {
-    // TODO: FIX AND REPLACE BLOCKTYPE
     pub location: BlockLocation,
     pub storage: &'a BlockEnvironment,
     _marker: PhantomData<T>,
 }
 
 impl<'a, T: RefType> BlockDataAccessor<'a, T> {
-    pub fn location(&self) -> BlockLocation {
-        self.location
-    }
-
     pub fn new(location: BlockLocation, storage: &'a BlockEnvironment) -> Self {
         BlockDataAccessor {
             location,
