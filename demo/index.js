@@ -1,6 +1,9 @@
-/* global HTML */
+/* global HTML, m */
 
-const $ = HTML;
+const $ = HTML({
+    h: m,
+    textConvert: (a) => a,
+});
 
 const BOARD_SIZE = 10;
 const DEFAULT_AI = SimpleAI;
@@ -35,7 +38,7 @@ const handles = [HTMLPlayerHandle(players[0]), AIHandle(players[1])];
 /// Utils
 
 function minmax(a, min, max) {
-    return Math.min(min, Math.max(a, max));
+    return Math.max(min, Math.min(a, max));
 }
 
 function withinRange(unit) {
@@ -116,8 +119,8 @@ function player(pid) {
                 stats.priority = price;
                 unit(res, stats);
             } else {
-                console.log(stats);
-                console.log(`is too expensive for player ${pid}`);
+                console.error(stats);
+                console.error(`is too expensive for player ${pid}`);
             }
         },
     };
@@ -125,7 +128,7 @@ function player(pid) {
     clone.ondestroy = () => alert(`Player ${pid} loses the game.`);
     clone.onstep = () => (res.resources += RESOURCE_GAIN_PER_STEP);
     clone.ai = NothingAI;
-    unit(res, BASE_STATS, res.spawn);
+    unit(res, BASE_STATS);
     return res;
 }
 
@@ -255,23 +258,22 @@ function run() {
     if (paused) return;
     units.forEach((a) => a.step());
     units.forEach((a) => a.resolveDamage());
-    interior.innerHTML = '';
-    interior.appendChild(
+    m.render(
+        interior,
         $.table(
             $.tr(
-                board.map((a) => {
+                ...board.map((a) => {
                     return $.td(Array.from(a[0]).map((a) => a.render()));
                 })
             ),
             $.tr(
-                board.map((a) => {
+                ...board.map((a) => {
                     return $.td(Array.from(a[1]).map((a) => a.render()));
                 })
             )
         )
     );
-    handlesElem.innerHTML = '';
-    handlesElem.appendChild($.div(handles.forEach((a) => a.render())));
+    m.render(handlesElem, $.div(...handles.map((a) => a.render())));
     _run = setTimeout(run, 1000);
 }
 run();

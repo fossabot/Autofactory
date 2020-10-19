@@ -1,5 +1,6 @@
 dependencies:
   hyperscript-adapter: 7.0.0
+  mithril: 2.0.4
 devDependencies:
   eslint: 7.11.0
   eslint-config-prettier: 6.13.0_eslint@7.11.0
@@ -569,6 +570,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+  /mithril/2.0.4:
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-mgw+DMZlhMS4PpprF6dl7ZoeZq5GGcAuWnrg5e12MvaGauc4jzWsDZtVGRCktsiQczOEUr2K5teKbE5k44RlOg==
   /mkdirp/0.5.5:
     dependencies:
       minimist: 1.2.5
@@ -829,4 +835,5 @@ specifiers:
   eslint-config-prettier: ^6.13.0
   eslint-plugin-prettier: ^3.1.4
   hyperscript-adapter: ^7.0.0
+  mithril: ^2.0.4
   prettier: ^2.1.2
