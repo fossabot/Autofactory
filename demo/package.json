@@ -1,0 +1,20 @@
+{
+  "name": "autofactory-gameplay-demo",
+  "version": "1.0.0",
+  "description": "A very simple and abstract gameplay demo.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "iMplode-nZ",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "hyperscript-adapter": "^7.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.11.0",
+    "eslint-config-prettier": "^6.13.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.1.2"
+  }
+}
