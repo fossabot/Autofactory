@@ -2,7 +2,7 @@
 
 const $ = HTML({
     h: m,
-    textConvert: (a) => a,
+    textConvert: (a) => `${a}`,
 });
 
 const BOARD_SIZE = 10;
@@ -18,10 +18,25 @@ const BASE_STATS = {
     priority: 999,
 };
 const UNIT_STAT_BOUNDS = {
-    movement: [0, 3],
+    movement: [0, 4],
     range: [0, 5],
-    firepower: [0, 5],
+    firepower: [1, 5],
     health: [0, 10],
+};
+const UNIT_PROPERTY_NAMES = {
+    // Controller: ['controller', 'id'],
+    Health: ['health'],
+    // 'Max Health': ['stats', 'health'],
+    Movement: ['stats', 'movement'],
+    Range: ['stats', 'range'],
+    Firepower: ['stats', 'firepower'],
+};
+const KEYBINDS = {
+    a: ['health', 'Max Health'],
+    s: ['movement', 'Movement'],
+    d: ['range', 'Range'],
+    f: ['firepower', 'Firepower'],
+    v: [(s, p) => p.unit(s), 'Create'],
 };
 
 const board = Array(BOARD_SIZE)
@@ -33,12 +48,20 @@ const board = Array(BOARD_SIZE)
     );
 const units = new Set();
 const players = [player(0), player(1)];
-const handles = [HTMLPlayerHandle(players[0]), AIHandle(players[1])];
+const handles = [TextPlayerHandle(players[0]), AIHandle(players[1])];
 
 /// Utils
 
 function minmax(a, min, max) {
     return Math.max(min, Math.min(a, max));
+}
+
+function getDeep(obj, path) {
+    let res = obj;
+    for (const a of path) {
+        res = res[a];
+    }
+    return res;
 }
 
 function withinRange(unit) {
@@ -59,19 +82,105 @@ function computePrice(stats) {
     return stats.movement + stats.range + stats.firepower + stats.health;
 }
 
+function rainbow(numOfSteps, step) {
+    // This function generates vibrant, "evenly spaced" colours (i.e. no clustering).
+    // This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+    // Adam Cole, 2011-Sept-14
+    // HSV to RBG adapted from:
+    // http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+    let r, g, b;
+    const h = step / numOfSteps;
+    const i = ~~(h * 6);
+    const f = h * 6 - i;
+    const q = 1 - f;
+    switch (i % 6) {
+        case 0:
+            r = 1;
+            g = f;
+            b = 0;
+            break;
+        case 1:
+            r = q;
+            g = 1;
+            b = 0;
+            break;
+        case 2:
+            r = 0;
+            g = 1;
+            b = f;
+            break;
+        case 3:
+            r = 0;
+            g = q;
+            b = 1;
+            break;
+        case 4:
+            r = f;
+            g = 0;
+            b = 1;
+            break;
+        case 5:
+            r = 1;
+            g = 0;
+            b = q;
+            break;
+    }
+    const c =
+        '#' +
+        ('00' + (~~(r * 255)).toString(16)).slice(-2) +
+        ('00' + (~~(g * 255)).toString(16)).slice(-2) +
+        ('00' + (~~(b * 255)).toString(16)).slice(-2);
+    return c;
+}
+
 /// A Handle is a function of a player that returns an object.
-/// The object has a method, `render`, which renders the object.
-function HTMLPlayerHandle(player) {
+/// The object has a method `step`, which does all computation relevant to it,
+/// and a method `render`, which does rendering.
+function TextPlayerHandle(player) {
+    const stats = Object.fromEntries(Object.entries(UNIT_STAT_BOUNDS).map(([k, v]) => [k, v[0]]));
+    document.body.addEventListener('keydown', (e) => {
+        const bind = KEYBINDS[e.key];
+        console.log(bind);
+        if (bind !== undefined) {
+            const b = bind[0];
+            if (typeof b === 'string') {
+                stats[b]++;
+                if (stats[b] > UNIT_STAT_BOUNDS[b][1]) {
+                    stats[b] = UNIT_STAT_BOUNDS[b][0];
+                }
+            } else {
+                b(stats, player);
+            }
+        }
+    });
     return {
+        step() {},
         render() {
-            return $.div();
+            return $.div(
+                Object.entries(KEYBINDS).map((a) => $.div(`${a[1][1]} - "${a[0]}": ${stats[a[1][0]]}`)),
+                $.div(`Player ${player.id}'s Resources: ${player.resources}.`)
+            );
         },
     };
 }
 function AIHandle(player) {
+    function randomUnit() {
+        const stats = {};
+        for (const [k, v] of Object.entries(UNIT_STAT_BOUNDS)) {
+            stats[k] = Math.floor(Math.random() * (v[1] - v[0] + 1) + v[0]);
+        }
+        return stats;
+    }
+    let next = randomUnit();
     return {
+        step() {
+            while (computePrice(next) <= player.resources) {
+                player.unit(next);
+                next = randomUnit();
+            }
+        },
         render() {
-            return $.div();
+            return $.div(`Player ${player.id}'s Resources: ${player.resources}.`);
         },
     };
 }
@@ -112,7 +221,14 @@ function player(pid) {
         id: pid,
         color: rainbow(TOTAL_PLAYERS, pid),
         resources: STARTING_RESOURCES,
-        unit(stats) {
+        unit(_stats) {
+            const stats = JSON.parse(JSON.stringify(_stats));
+            for (const k of Object.keys(stats)) {
+                if (UNIT_STAT_BOUNDS[k]) {
+                    const bound = UNIT_STAT_BOUNDS[k];
+                    stats[k] = minmax(stats[k], ...bound);
+                }
+            }
             const price = computePrice(stats);
             if (price <= res.resources) {
                 res.resources -= price;
@@ -128,7 +244,7 @@ function player(pid) {
     clone.ondestroy = () => alert(`Player ${pid} loses the game.`);
     clone.onstep = () => (res.resources += RESOURCE_GAIN_PER_STEP);
     clone.ai = NothingAI;
-    unit(res, BASE_STATS);
+    unit(res, clone);
     return res;
 }
 
@@ -184,7 +300,18 @@ function unit(player, stats, location = player.spawn) {
             unit.onstep();
         },
         render() {
-            return $.span.unit(`Unit: ${unit.health}`);
+            let text = '';
+            for (const x of Object.values(UNIT_PROPERTY_NAMES)) {
+                text += `${getDeep(unit, x)}\n`;
+            }
+            return $.div.unit(
+                {
+                    style: {
+                        __color: player.color,
+                    },
+                },
+                text
+            );
         },
     };
     units.add(unit);
@@ -192,60 +319,11 @@ function unit(player, stats, location = player.spawn) {
     return unit;
 }
 
-function rainbow(numOfSteps, step) {
-    // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
-    // Adam Cole, 2011-Sept-14
-    // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-    let r, g, b;
-    const h = step / numOfSteps;
-    const i = ~~(h * 6);
-    const f = h * 6 - i;
-    const q = 1 - f;
-    switch (i % 6) {
-        case 0:
-            r = 1;
-            g = f;
-            b = 0;
-            break;
-        case 1:
-            r = q;
-            g = 1;
-            b = 0;
-            break;
-        case 2:
-            r = 0;
-            g = 1;
-            b = f;
-            break;
-        case 3:
-            r = 0;
-            g = q;
-            b = 1;
-            break;
-        case 4:
-            r = f;
-            g = 0;
-            b = 1;
-            break;
-        case 5:
-            r = 1;
-            g = 0;
-            b = q;
-            break;
-    }
-    const c =
-        '#' +
-        ('00' + (~~(r * 255)).toString(16)).slice(-2) +
-        ('00' + (~~(g * 255)).toString(16)).slice(-2) +
-        ('00' + (~~(b * 255)).toString(16)).slice(-2);
-    return c;
-}
-
 const interior = document.getElementById('interior');
 const handlesElem = document.getElementById('handles');
 let paused = false;
 let _run = 0;
-document.body.onkeydown = (e) => {
+document.body.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
         paused = !paused;
         if (!paused) {
@@ -253,27 +331,32 @@ document.body.onkeydown = (e) => {
             run();
         }
     }
-};
+});
 function run() {
     if (paused) return;
+    handles.forEach((a) => a.step());
     units.forEach((a) => a.step());
     units.forEach((a) => a.resolveDamage());
+    _run = setTimeout(run, 2000);
+}
+(function render() {
+    window.requestAnimationFrame(render);
+    m.render(handlesElem, $.div(...handles.map((a) => a.render())));
     m.render(
         interior,
-        $.table(
-            $.tr(
+        $.div(
+            $.div$unitStats(Object.keys(UNIT_PROPERTY_NAMES).join('\n')),
+            $.tr$board(
                 ...board.map((a) => {
-                    return $.td(Array.from(a[0]).map((a) => a.render()));
-                })
-            ),
-            $.tr(
-                ...board.map((a) => {
-                    return $.td(Array.from(a[1]).map((a) => a.render()));
+                    return $.td.tile(
+                        a
+                            .map((x) => Array.from(x))
+                            .flat()
+                            .map((a) => a.render())
+                    );
                 })
             )
         )
     );
-    m.render(handlesElem, $.div(...handles.map((a) => a.render())));
-    _run = setTimeout(run, 1000);
-}
+})();
 run();
