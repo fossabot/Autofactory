@@ -260,10 +260,11 @@ impl<'a, T: RefType> OctreeIter<'a, T> {
                 self.stack.pop();
             } else {
                 todo!()
-                // match last.0.to_wrapped().trees.index_ref(get_at(idx, 0)).index_ref(get_at(idx, 1)).index_ref(get_at(idx, 2)).deref_ref().to_wrapped() {
-                //     NodeRef::AirLeaf(_) => {},
-                //     NodeRef::ChunkLeaf(_cl) => {
-                //         let cl = _cl.to_wrapped();
+                // match last.0.to_wrapped().trees.index_ref(get_at(idx,
+                // 0)).index_ref(get_at(idx, 1)).index_ref(get_at(idx,
+                // 2)).deref_ref().to_wrapped() {     NodeRef::
+                // AirLeaf(_) => {},     NodeRef::ChunkLeaf(_cl)
+                // => {         let cl = _cl.to_wrapped();
                 //         self.location = *cl.location;
                 //         self.ci = Some(cl.chunk.iter_ref());
                 //     }
@@ -277,13 +278,11 @@ impl<'a, T: RefType> OctreeIter<'a, T> {
 
     fn new(storage: Ref<'a, OctreeBlockStorage, T>) -> Self {
         match storage.to_wrapped().root.to_wrapped() {
-            NodeRef::AirLeaf(al) => {
-                OctreeIter {
-                    stack: vec![],
-                    location: al.location,
-                    ci: None,
-                }
-            }
+            NodeRef::AirLeaf(al) => OctreeIter {
+                stack: vec![],
+                location: al.location,
+                ci: None,
+            },
             NodeRef::ChunkLeaf(_cl) => {
                 let cl = _cl.to_wrapped();
                 OctreeIter {

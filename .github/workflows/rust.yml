@@ -25,12 +25,12 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: fmt
-        args:  --manifest-path ./native/Cargo.toml -- --check
+        args:  --manifest-path ./Cargo.toml -- --check
     - name: Lint files
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args: --manifest-path ./native/Cargo.toml -- -D warnings
+        args: --manifest-path ./Cargo.toml -- -D warnings
   build:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -50,9 +50,9 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --all-features --manifest-path ./native/Cargo.toml
+        args: --all-features --manifest-path ./Cargo.toml
     - name: Run tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all-features --no-fail-fast --manifest-path ./native/Cargo.toml
+        args: --all-features --no-fail-fast --manifest-path ./Cargo.toml

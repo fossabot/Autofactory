@@ -37,7 +37,9 @@ pub trait BlockStorage {
         Self::get_opt_ref(Ref::new(self), coords).map(|mut x| x.as_mut())
     }
 
-    type Iter<'a, T: RefType>: Iterator<Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation)>;
+    type Iter<'a, T: RefType>: Iterator<
+        Item = (BlockDataAccessor<'a, T>, Ref<'a, Block, T>, BlockLocation),
+    >;
 
     #[allow(clippy::needless_lifetimes)]
     fn iter_ref<'a, T: RefType>(self: Ref<'a, Self, T>) -> Self::Iter<'a, T>;
@@ -58,7 +60,13 @@ where
 
 impl<'a, S> Iterator for StorageIterator<'a, Shared, S>
 where
-    S: Iterator<Item = (BlockDataAccessor<'a, Shared>, Ref<'a, Block, Shared>, BlockLocation)>,
+    S: Iterator<
+        Item = (
+            BlockDataAccessor<'a, Shared>,
+            Ref<'a, Block, Shared>,
+            BlockLocation,
+        ),
+    >,
 {
     type Item = (BlockDataAccessor<'a, Shared>, &'a Block, BlockLocation);
 
@@ -69,7 +77,13 @@ where
 
 impl<'a, S> Iterator for StorageIterator<'a, Unique, S>
 where
-    S: Iterator<Item = (BlockDataAccessor<'a, Unique>, Ref<'a, Block, Unique>, BlockLocation)>,
+    S: Iterator<
+        Item = (
+            BlockDataAccessor<'a, Unique>,
+            Ref<'a, Block, Unique>,
+            BlockLocation,
+        ),
+    >,
 {
     type Item = (BlockDataAccessor<'a, Unique>, &'a mut Block, BlockLocation);
 
