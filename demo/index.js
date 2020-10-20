@@ -51,7 +51,7 @@ const board = Array(BOARD_SIZE)
             .map(() => new Set())
     );
 const units = new Set();
-const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3), player(2, RESOURCE_GAIN_PER_STEP, 80)];
+const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3), player(2, RESOURCE_GAIN_PER_STEP, 20)];
 let alivePlayers = TOTAL_PLAYERS;
 const handles = [TextPlayerHandle(players[0]), AIHandle(players[1]), AIHandle(players[2])];
 
