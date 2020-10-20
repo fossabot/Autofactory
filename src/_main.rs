@@ -1,3 +1,3 @@
 pub fn main() {
-    ne::main::main();
+    autofactory::main::main();
 }

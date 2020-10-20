@@ -135,6 +135,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
+name = "autofactory"
+version = "1.0.0"
+dependencies = [
+ "array-macro",
+ "bevy",
+ "enum_dispatch",
+ "euclid",
+ "floating-duration",
+ "lazy_static",
+ "parking_lot",
+ "rand",
+ "ref_clone",
+ "static_assertions",
+ "take_mut",
+]
+
+[[package]]
 name = "base-x"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1963,23 +1980,6 @@ name = "ndk-sys"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de01535c8fca086732bb66c9bc7779d336c44088d42782cd11d5f2a7ace52f7e"
-
-[[package]]
-name = "ne"
-version = "1.0.0"
-dependencies = [
- "array-macro",
- "bevy",
- "enum_dispatch",
- "euclid",
- "floating-duration",
- "lazy_static",
- "parking_lot",
- "rand",
- "ref_clone",
- "static_assertions",
- "take_mut",
-]
 
 [[package]]
 name = "net2"
