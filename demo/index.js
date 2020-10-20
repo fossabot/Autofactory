@@ -1,5 +1,7 @@
 /* global HTML, m */
 
+'use strict';
+
 const $ = HTML({
     h: m,
     textConvert: (a) => `${a}`,
