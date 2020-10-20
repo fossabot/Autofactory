@@ -1,13 +1,13 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/demo"
     schedule:
       interval: "daily"
     commit-message:
       prefix: "npm"
   - package-ecosystem: "cargo"
-    directory: "/native"
+    directory: "/"
     schedule:
       interval: "daily"
     commit-message:
