@@ -2,7 +2,20 @@
 
 # Autofactory
 
-Please read for an explanation of what this is: https://youxplode.com/md.html?Autofactory
+<p align="center">
+<a href="https://discord.gg/GCz7KgG">
+    <img src="https://img.shields.io/discord/726947023231647798.svg?logo=discord&colorB=7289DA">
+</a>
+<a href="https://github.com/iMplode-nZ/Autofactory/actions">
+    <img src="https://img.shields.io/github/workflow/status/iMplode-nZ/Autofactory/Rust">
+</a>
+<a href="https://github.com/iMplode-nZ/Autofactory/blob/main/LICENSE.md">
+    <img src="https://img.shields.io/badge/license-GPL--3.0-brightgreen">
+</a>
+</p>
+<p align="center">
+    <strong> <a href="https://youxplode.com/md.html?Autofactory">About</a> </strong>
+</p>
 
 ## Compiling
 
