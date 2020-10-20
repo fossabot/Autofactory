@@ -1,6 +1,6 @@
 <!-- markdownlint-disable no-inline-html no-bare-urls line-length header-increment commands-show-output -->
 
-# NE
+# Autofactory
 
 Please read for an explanation of what this is: https://youxplode.com/md.html?Autofactory
 

@@ -1,5 +1,5 @@
 [package]
-name = "ne"
+name = "autofactory"
 version = "1.0.0"
 authors = ["iMplode nZ <rg@youxplode.com>"]
 license = "GPL-3.0-only"
@@ -10,7 +10,7 @@ publish = false
 default-run = "main"
 
 [lib]
-name = "ne"
+name = "autofactory"
 crate-type = ["cdylib", "lib"]
 
 [[bin]]
@@ -22,11 +22,7 @@ name = "tests-main"
 path = "tests-main/main.rs"
 harness = false
 
-[build-dependencies]
-# neon-build = "0.4.2"
-
 [dependencies]
-# neon = "0.4.2"
 static_assertions = "1.1.0"
 array-macro = "1.0.5"
 rand = "0.7.3"
@@ -38,5 +34,4 @@ floating-duration = "0.1.2"
 parking_lot = { version = "0.11.0", features = ["nightly"] }
 ref_clone = "0.7.0"
 [dependencies.bevy]
-# version = "^0.2.1"
 git = "https://github.com/bevyengine/bevy"
