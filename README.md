@@ -29,7 +29,7 @@ Start using
 
 ## Prototype
 
-There is also a very simple prototype<sup>[2](#fn2)</sup> that can be accessed by simply opening `file:///path/to/NE/demo/index.html`. The space button can be used to pause the "game". Other controls are shown in the `Player 0's Resources ...` section.
+There is also a very simple prototype<sup>[2](#fn2)</sup> that can be accessed by simply opening `file:///path/to/Autofactory/demo/index.html`. The space button can be used to pause the "game". Other controls are shown in the `Player 0's Resources ...` section.
 
 ---
 
