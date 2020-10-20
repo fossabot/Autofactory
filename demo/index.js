@@ -17,7 +17,7 @@ const BASE_STATS = {
     range: 0,
     firepower: 0,
     health: 40,
-    priority: -1,
+    priority: -999,
 };
 const UNIT_STAT_BOUNDS = {
     movement: [0, 3],

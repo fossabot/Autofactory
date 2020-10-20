@@ -47,6 +47,7 @@ pub enum Node {
 }
 
 impl Node {
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,
@@ -137,6 +138,7 @@ pub struct OctreeBlockStorage {
 }
 
 impl BlockStorage for OctreeBlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         pos: Point3D<i64>,

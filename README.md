@@ -27,6 +27,11 @@ Start using
 > pnpm run start
 ```
 
+## Demo
+
+There is also a very simple prototype<sup>[2](#fn2)</sup> that can be accessed by simply opening `file:///path/to/NE/demo/index.html`. The space button can be used to pause the "game". Other controls are shown in the `Player 0's Resources ...` section.
+
 ---
 
 <a name="fn1">1</a>: Install `pnpm` using `npm install --global pnpm`.
+<a name="fn2">2</a>: Nothing in this will be kept; its purely for testing purposes.

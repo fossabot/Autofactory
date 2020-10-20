@@ -22,6 +22,7 @@ impl Debug for ChunkBlockStorage {
 }
 
 impl ChunkBlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_wrapped<'a, T: RefType>(
         blocks: Ref<'a, Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>, T>,
         coords: BlockLocation,
@@ -41,6 +42,7 @@ impl ChunkBlockStorage {
 }
 
 impl BlockStorage for ChunkBlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,
@@ -48,6 +50,7 @@ impl BlockStorage for ChunkBlockStorage {
         Self::get_wrapped(self.to_wrapped().blocks, coords)
     }
 
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,

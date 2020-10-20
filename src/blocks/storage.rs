@@ -2,6 +2,7 @@ use super::*;
 use ref_clone::*;
 
 pub trait BlockStorage {
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_env_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,
@@ -22,6 +23,7 @@ pub trait BlockStorage {
             .map(|mut x| (x.0.as_mut(), x.1))
     }
 
+    #[allow(clippy::needless_lifetimes)]
     fn get_opt_ref<'a, T: RefType>(
         self: Ref<'a, Self, T>,
         coords: Point3D<i64>,
