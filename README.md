@@ -34,4 +34,5 @@ There is also a very simple prototype<sup>[2](#fn2)</sup> that can be accessed b
 ---
 
 <a name="fn1">1</a>: Install `pnpm` using `npm install --global pnpm`.
+
 <a name="fn2">2</a>: Nothing in this will be kept; its purely for testing purposes.
