@@ -1,31 +1,29 @@
 /* global HTML, m */
 
 const $ = HTML({
-    h: (tag, attrs, ...elements) => {
-        attrs.class = attrs.className;
-        delete attrs.className;
-        return m(tag, attrs, ...elements);
-    },
+    h: m,
     textConvert: (a) => `${a}`,
+    combineId: true,
+    combineClasses: true,
 });
 
-const BOARD_SIZE = 10;
+const BOARD_SIZE = 20;
 const DEFAULT_AI = SimpleAI;
-const STARTING_RESOURCES = 10;
-const RESOURCE_GAIN_PER_STEP = 3;
-const TOTAL_PLAYERS = 2;
+const STARTING_RESOURCES = 5;
+const RESOURCE_GAIN_PER_STEP = 1;
+const TOTAL_PLAYERS = 3;
 const BASE_STATS = {
     movement: 0,
     range: 0,
     firepower: 0,
     health: 40,
-    priority: 999,
+    priority: -1,
 };
 const UNIT_STAT_BOUNDS = {
-    movement: [0, 4],
-    range: [0, 5],
-    firepower: [1, 5],
-    health: [0, 10],
+    movement: [0, 3],
+    range: [0, 4],
+    firepower: [1, 3],
+    health: [0, 7],
 };
 const UNIT_PROPERTY_NAMES = {
     // Controller: ['controller', 'id'],
@@ -51,8 +49,9 @@ const board = Array(BOARD_SIZE)
             .map(() => new Set())
     );
 const units = new Set();
-const players = [player(0), player(1)];
-const handles = [TextPlayerHandle(players[0]), AIHandle(players[1])];
+const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3), player(2, RESOURCE_GAIN_PER_STEP, 80)];
+let alivePlayers = TOTAL_PLAYERS;
+const handles = [TextPlayerHandle(players[0]), AIHandle(players[1]), AIHandle(players[2])];
 
 /// Utils
 
@@ -137,13 +136,14 @@ function rainbow(numOfSteps, step) {
     return c;
 }
 
-/// A Handle is a function of a player that returns an object.
+/// A Handle is a thing that controls a player. For example, a text interface may be a handle.
+/// A remote connection would also be a handle.
 /// The object has a method `step`, which does all computation relevant to it,
 /// and a method `render`, which does rendering.
-function TextPlayerHandle(player) {
+function TextPlayerHandle(player, bindings = KEYBINDS) {
     const stats = Object.fromEntries(Object.entries(UNIT_STAT_BOUNDS).map(([k, v]) => [k, v[0]]));
     document.body.addEventListener('keydown', (e) => {
-        const bind = KEYBINDS[e.key];
+        const bind = bindings[e.key];
         console.log(bind);
         if (bind !== undefined) {
             const b = bind[0];
@@ -160,7 +160,14 @@ function TextPlayerHandle(player) {
     return {
         step() {},
         render() {
-            return $.div(Object.entries(KEYBINDS).map((a) => $.div(`${a[1][1]} - "${a[0]}": ${stats[a[1][0]]}`)));
+            return $.div(
+                `Current Price       : ${computePrice(stats)}`,
+                Object.entries(bindings).map((a) =>
+                    $.div(
+                        `${a[1][1]} - ${a[0]}`.padEnd(20) + (typeof a[1][0] === 'string' ? ': ' + stats[a[1][0]] : '')
+                    )
+                )
+            );
         },
     };
 }
@@ -181,7 +188,7 @@ function AIHandle(player) {
             }
         },
         render() {
-            return $.div();
+            return $.div(`[-- AI Handle --]`);
         },
     };
 }
@@ -212,17 +219,21 @@ function SimpleAI(unit, move, fire) {
     }
     const r = withinRange(unit);
     if (r.length > 0) {
-        fire(r.reduce((a, b) => (a.stats.priority > b.stats.priority ? a : b)));
+        fire(r.reduce((a, b) => (a.stats.priority > b.stats.priority + Math.random() * 4 - 2 ? a : b)));
     }
 }
 
-function player(pid) {
+function player(pid, resourceGain = RESOURCE_GAIN_PER_STEP, resources = STARTING_RESOURCES) {
     const res = {
-        spawn: pid * (BOARD_SIZE - 1),
+        spawn: Math.floor((pid / (TOTAL_PLAYERS - 1)) * (BOARD_SIZE - 1)),
         id: pid,
         color: rainbow(TOTAL_PLAYERS, pid),
-        resources: STARTING_RESOURCES,
+        resources,
         unit(_stats) {
+            if (res.entity.destroyed) {
+                console.log('Player Base destroyed; cannot create units.');
+                return;
+            }
             const stats = JSON.parse(JSON.stringify(_stats));
             for (const k of Object.keys(stats)) {
                 if (UNIT_STAT_BOUNDS[k]) {
@@ -241,14 +252,20 @@ function player(pid) {
             }
         },
         render() {
-            return $.div(`Player ${res.id}'s Resources: ${res.resources}.`);
+            if (res.entity.destroyed) {
+                return $.div(`Player ${res.id}: ELIMINATED`);
+            } else {
+                return $.div(`Player ${res.id}'s Resources: ${res.resources}`);
+            }
         },
     };
     const clone = JSON.parse(JSON.stringify(BASE_STATS));
-    clone.ondestroy = () => alert(`Player ${pid} loses the game.`);
-    clone.onstep = () => (res.resources += RESOURCE_GAIN_PER_STEP);
+    clone.ondestroy = () => {
+        alivePlayers--;
+    };
+    clone.onstep = () => (res.resources += resourceGain);
     clone.ai = NothingAI;
-    unit(res, clone);
+    res.entity = unit(res, clone);
     return res;
 }
 
@@ -323,8 +340,6 @@ function unit(player, stats, location = player.spawn) {
     return unit;
 }
 
-const interior = document.getElementById('interior');
-const handlesElem = document.getElementById('handles');
 let paused = false;
 let _run = 0;
 document.body.addEventListener('keydown', (e) => {
@@ -343,23 +358,31 @@ function run() {
     units.forEach((a) => a.resolveDamage());
     _run = setTimeout(run, 2000);
 }
+const root = document.body;
 (function render() {
     window.requestAnimationFrame(render);
-    m.render(handlesElem, $.div(...handles.map((a, i) => $.div.handle(a.render(), players[i].render()))));
+    const boardRender = $.div$board(
+        $.div.tile$unitStats(Object.keys(UNIT_PROPERTY_NAMES).join('\n')),
+        ...board.map((a) => {
+            return $.div.tile(
+                a
+                    .map((x) => Array.from(x))
+                    .flat()
+                    .map((a) => a.render())
+            );
+        })
+    );
+    const handlesRender = $.div.handles(
+        ...handles.map((a, i) => $.div.handle($.div.handleInterior(players[i].render(), a.render())))
+    );
+
     m.render(
-        interior,
-        $.div(
-            $.div$unitStats(Object.keys(UNIT_PROPERTY_NAMES).join('\n')),
-            $.tr$board(
-                ...board.map((a) => {
-                    return $.td.tile(
-                        a
-                            .map((x) => Array.from(x))
-                            .flat()
-                            .map((a) => a.render())
-                    );
-                })
-            )
+        root,
+        $.div.interior(
+            boardRender,
+            handlesRender,
+            paused ? $.div$paused('PAUSED') : '',
+            alivePlayers <= 1 ? $.div$gameOver('GAME OVER') : ''
         )
     );
 })();
