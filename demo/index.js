@@ -1,7 +1,11 @@
 /* global HTML, m */
 
 const $ = HTML({
-    h: m,
+    h: (tag, attrs, ...elements) => {
+        attrs.class = attrs.className;
+        delete attrs.className;
+        return m(tag, attrs, ...elements);
+    },
     textConvert: (a) => `${a}`,
 });
 
@@ -156,10 +160,7 @@ function TextPlayerHandle(player) {
     return {
         step() {},
         render() {
-            return $.div(
-                Object.entries(KEYBINDS).map((a) => $.div(`${a[1][1]} - "${a[0]}": ${stats[a[1][0]]}`)),
-                $.div(`Player ${player.id}'s Resources: ${player.resources}.`)
-            );
+            return $.div(Object.entries(KEYBINDS).map((a) => $.div(`${a[1][1]} - "${a[0]}": ${stats[a[1][0]]}`)));
         },
     };
 }
@@ -180,7 +181,7 @@ function AIHandle(player) {
             }
         },
         render() {
-            return $.div(`Player ${player.id}'s Resources: ${player.resources}.`);
+            return $.div();
         },
     };
 }
@@ -238,6 +239,9 @@ function player(pid) {
                 console.error(stats);
                 console.error(`is too expensive for player ${pid}`);
             }
+        },
+        render() {
+            return $.div(`Player ${res.id}'s Resources: ${res.resources}.`);
         },
     };
     const clone = JSON.parse(JSON.stringify(BASE_STATS));
@@ -341,7 +345,7 @@ function run() {
 }
 (function render() {
     window.requestAnimationFrame(render);
-    m.render(handlesElem, $.div(...handles.map((a) => a.render())));
+    m.render(handlesElem, $.div(...handles.map((a, i) => $.div.handle(a.render(), players[i].render()))));
     m.render(
         interior,
         $.div(
