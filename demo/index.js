@@ -9,11 +9,13 @@ const $ = HTML({
     combineClasses: true,
 });
 
-const BOARD_SIZE = 20;
+const STEP = 3000;
+
+const BOARD_SIZE = 40;
 const DEFAULT_AI = SimpleAI;
-const STARTING_RESOURCES = 5;
-const RESOURCE_GAIN_PER_STEP = 1;
-const TOTAL_PLAYERS = 3;
+const STARTING_RESOURCES = 10;
+const RESOURCE_GAIN_PER_STEP = 2;
+const TOTAL_PLAYERS = 2;
 const BASE_STATS = {
     movement: 0,
     range: 0,
@@ -22,10 +24,10 @@ const BASE_STATS = {
     priority: -999,
 };
 const UNIT_STAT_BOUNDS = {
-    movement: [0, 3],
-    range: [0, 4],
-    firepower: [1, 3],
-    health: [0, 7],
+    movement: [0, 2],
+    range: [0, 10],
+    firepower: [0, 5],
+    health: [0, 15],
 };
 const UNIT_PROPERTY_NAMES = {
     // Controller: ['controller', 'id'],
@@ -51,9 +53,9 @@ const board = Array(BOARD_SIZE)
             .map(() => new Set())
     );
 const units = new Set();
-const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3), player(2, RESOURCE_GAIN_PER_STEP, 20)];
+const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3)];
 let alivePlayers = TOTAL_PLAYERS;
-const handles = [TextPlayerHandle(players[0]), AIHandle(players[1]), AIHandle(players[2])];
+const handles = [TextPlayerHandle(players[0]), AIHandle(players[1])];
 
 /// Utils
 
@@ -84,7 +86,9 @@ function withinRange(unit) {
 }
 
 function computePrice(stats) {
-    return stats.movement + stats.range + stats.firepower + stats.health;
+    return parseFloat(
+        (stats.movement * 4 + ((Math.pow(stats.range, 1.2) + 1) * stats.firepower) / 2 + stats.health / 3).toFixed(1)
+    );
 }
 
 function rainbow(numOfSteps, step) {
@@ -358,7 +362,7 @@ function run() {
     handles.forEach((a) => a.step());
     units.forEach((a) => a.step());
     units.forEach((a) => a.resolveDamage());
-    _run = setTimeout(run, 2000);
+    _run = setTimeout(run, STEP);
 }
 const root = document.body;
 (function render() {
