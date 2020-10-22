@@ -9,9 +9,9 @@ const $ = HTML({
     combineClasses: true,
 });
 
-const STEP = 3000;
-
-const BOARD_SIZE = 40;
+const STEP = 1500;
+const UNIT_PAD = 2;
+const BOARD_SIZE = 61;
 const DEFAULT_AI = SimpleAI;
 const STARTING_RESOURCES = 10;
 const RESOURCE_GAIN_PER_STEP = 2;
@@ -24,10 +24,10 @@ const BASE_STATS = {
     priority: -999,
 };
 const UNIT_STAT_BOUNDS = {
-    movement: [0, 2],
-    range: [0, 10],
-    firepower: [0, 5],
-    health: [0, 15],
+    movement: [0.25, 2, 0.25],
+    range: [0, 12, 1],
+    firepower: [0, 4, 1],
+    health: [0, 10, 1],
 };
 const UNIT_PROPERTY_NAMES = {
     // Controller: ['controller', 'id'],
@@ -45,22 +45,27 @@ const KEYBINDS = {
     v: [(s, p) => p.unit(s), 'Create'],
 };
 
-const board = Array(BOARD_SIZE)
-    .fill(0)
-    .map(() =>
-        Array(TOTAL_PLAYERS)
-            .fill(0)
-            .map(() => new Set())
-    );
+const board = Array(BOARD_SIZE).fill(null);
 const units = new Set();
-const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 3)];
+const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 2)];
 let alivePlayers = TOTAL_PLAYERS;
-const handles = [TextPlayerHandle(players[0]), AIHandle(players[1])];
+const handles = [TextPlayerHandle(players[0]), EmptyHandle(players[1])];
 
 /// Utils
 
 function minmax(a, min, max) {
     return Math.max(min, Math.min(a, max));
+}
+
+function bump(position, _direction = 0, cont = true) {
+    // Returns the next available spot in the direction specified, or undefined if there aren't any.
+    const direction = Math.sign(Math.sign(_direction) + Math.random() - 1 / 2);
+    let res = position;
+    while (board[res] !== undefined && board[res] !== null) {
+        res += direction;
+    }
+    if (board[res] === undefined && cont) return bump(position, -direction, false);
+    return res;
 }
 
 function getDeep(obj, path) {
@@ -76,19 +81,16 @@ function withinRange(unit) {
     const pos = unit.position;
     const res = [];
     for (let i = pos - range; i <= pos + range; i++) {
-        if (board[i] !== undefined) {
-            board[i].forEach((a, i) => {
-                if (i !== unit.controller.id) a.forEach((a) => res.push(a));
-            });
+        const b = board[i];
+        if (b != null && b.controller !== unit.controller) {
+            res.push(b);
         }
     }
     return res;
 }
 
 function computePrice(stats) {
-    return parseFloat(
-        (stats.movement * 4 + ((Math.pow(stats.range, 1.2) + 1) * stats.firepower) / 2 + stats.health / 3).toFixed(1)
-    );
+    return stats.movement * 4 + ((Math.pow(stats.range, 1.2) + 1) * stats.firepower) / 2 + stats.health / 3;
 }
 
 function rainbow(numOfSteps, step) {
@@ -150,11 +152,10 @@ function TextPlayerHandle(player, bindings = KEYBINDS) {
     const stats = Object.fromEntries(Object.entries(UNIT_STAT_BOUNDS).map(([k, v]) => [k, v[0]]));
     document.body.addEventListener('keydown', (e) => {
         const bind = bindings[e.key];
-        console.log(bind);
         if (bind !== undefined) {
             const b = bind[0];
             if (typeof b === 'string') {
-                stats[b]++;
+                stats[b] += UNIT_STAT_BOUNDS[b][2];
                 if (stats[b] > UNIT_STAT_BOUNDS[b][1]) {
                     stats[b] = UNIT_STAT_BOUNDS[b][0];
                 }
@@ -167,10 +168,11 @@ function TextPlayerHandle(player, bindings = KEYBINDS) {
         step() {},
         render() {
             return $.div(
-                `Current Price       : ${computePrice(stats)}`,
+                `Current Price       : ${computePrice(stats).toString().substr(0, 3)}`,
                 Object.entries(bindings).map((a) =>
                     $.div(
-                        `${a[1][1]} - ${a[0]}`.padEnd(20) + (typeof a[1][0] === 'string' ? ': ' + stats[a[1][0]] : '')
+                        `${a[1][1]} - ${a[0]}`.padEnd(20) +
+                            (typeof a[1][0] === 'string' ? ': ' + stats[a[1][0]].toString().substr(0, 3) : '')
                     )
                 )
             );
@@ -181,8 +183,9 @@ function AIHandle(player) {
     function randomUnit() {
         const stats = {};
         for (const [k, v] of Object.entries(UNIT_STAT_BOUNDS)) {
-            stats[k] = Math.floor(Math.random() * (v[1] - v[0] + 1) + v[0]);
+            stats[k] = Math.floor((Math.random() * (v[1] - v[0] + 1) + v[0]) / v[2]) * v[2];
         }
+        console.log(stats);
         return stats;
     }
     let next = randomUnit();
@@ -195,6 +198,14 @@ function AIHandle(player) {
         },
         render() {
             return $.div(`[-- AI Handle --]`);
+        },
+    };
+}
+function EmptyHandle() {
+    return {
+        step() {},
+        render() {
+            return $.div();
         },
     };
 }
@@ -261,7 +272,7 @@ function player(pid, resourceGain = RESOURCE_GAIN_PER_STEP, resources = STARTING
             if (res.entity.destroyed) {
                 return $.div(`Player ${res.id}: ELIMINATED`);
             } else {
-                return $.div(`Player ${res.id}'s Resources: ${res.resources}`);
+                return $.div(`Player ${res.id}'s Resources: ${res.resources.toString().substr(0, 3)}`);
             }
         },
     };
@@ -275,12 +286,14 @@ function player(pid, resourceGain = RESOURCE_GAIN_PER_STEP, resources = STARTING
     return res;
 }
 
-function unit(player, stats, location = player.spawn) {
+function unit(player, stats, _location = player.spawn) {
+    const location = bump(_location);
     const unit = {
         controller: player,
         ai: stats.ai ?? DEFAULT_AI,
         health: stats.health,
         position: location,
+        partial: 0,
         destroyed: false,
         ondestroy: stats.ondestroy ?? (() => {}),
         onstep: stats.onstep ?? (() => {}),
@@ -292,7 +305,7 @@ function unit(player, stats, location = player.spawn) {
         resolveDamage() {
             if (unit.health < 0) {
                 units.delete(unit);
-                board[unit.position][unit.controller.id].delete(unit);
+                board[unit.position] = null;
                 unit.destroyed = true;
                 unit.position = -1;
                 unit.ai = () => {
@@ -303,33 +316,53 @@ function unit(player, stats, location = player.spawn) {
         },
         step() {
             if (unit.destroyed) throw new Error('Invalid Unit');
+            const phases = [];
             let fired = false;
             function fire(other) {
                 if (fired) throw new Error('Cannot fire twice.');
                 fired = true;
-                if (Math.abs(unit.position - other.position) > unit.range) {
-                    console.error('Range out of bounds.');
-                } else {
+                phases.push(() => {
+                    if (Math.abs(unit.position - other.position) > unit.range) {
+                        throw new Error('Range out of bounds.');
+                    }
                     other.damage(unit.stats.firepower);
-                }
+                });
             }
             let moved = false;
             function move(ds) {
                 if (moved) throw new Error('Cannot move twice.');
                 moved = true;
-                const pos = unit.position + ds;
-                const actual = minmax(pos, 0, BOARD_SIZE - 1);
-                board[unit.position][unit.controller.id].delete(unit);
-                unit.position = actual;
-                board[unit.position][unit.controller.id].add(unit);
+                phases.push(() => {
+                    if (Math.abs(ds) > unit.stats.movement) throw new Error('Cannot move more than movement stat.');
+                    //console.log(ds);
+                    const part = unit.partial + ds;
+                    //console.log(part);
+                    const delta = Math.sign(part) * Math.floor(Math.abs(part));
+                    console.log(delta);
+                    const pos = unit.position + delta;
+                    board[unit.position] = null;
+                    const actual = bump(minmax(pos, 0, BOARD_SIZE - 1), ds);
+                    if (actual === undefined) {
+                        board[unit.position] = unit;
+                    } else {
+                        unit.position = actual;
+                        unit.partial = part - delta;
+                        board[actual] = unit;
+                    }
+                });
             }
             unit.ai(unit, move, fire);
-            unit.onstep();
+            phases.push(unit.onstep);
+            phases.push(unit.resolveDamage);
+            return phases;
         },
         render() {
             let text = '';
             for (const x of Object.values(UNIT_PROPERTY_NAMES)) {
-                text += `${getDeep(unit, x)}\n`;
+                const d = getDeep(unit, x);
+                text += `${
+                    typeof d === 'number' ? d.toString().replace(/^0/, '').substr(0, UNIT_PAD).padEnd(UNIT_PAD) : d
+                }\n`;
             }
             return $.div.unit(
                 {
@@ -342,7 +375,7 @@ function unit(player, stats, location = player.spawn) {
         },
     };
     units.add(unit);
-    board[location][player.id].add(unit);
+    board[location] = unit;
     return unit;
 }
 
@@ -360,23 +393,25 @@ document.body.addEventListener('keydown', (e) => {
 function run() {
     if (paused) return;
     handles.forEach((a) => a.step());
-    units.forEach((a) => a.step());
-    units.forEach((a) => a.resolveDamage());
+    const phaseSteps = [];
+    const allSteps = Array.from(units).map((a) => a.step());
+    do {
+        phaseSteps.forEach((a) => a());
+        phaseSteps.length = 0;
+        for (const x of allSteps) {
+            const s = x.shift();
+            if (s !== undefined) {
+                phaseSteps.push(s);
+            }
+        }
+    } while (phaseSteps.length !== 0);
     _run = setTimeout(run, STEP);
 }
 const root = document.body;
 (function render() {
-    window.requestAnimationFrame(render);
     const boardRender = $.div$board(
         $.div.tile$unitStats(Object.keys(UNIT_PROPERTY_NAMES).join('\n')),
-        ...board.map((a) => {
-            return $.div.tile(
-                a
-                    .map((x) => Array.from(x))
-                    .flat()
-                    .map((a) => a.render())
-            );
-        })
+        ...board.map((a) => $.div.tile(a === null ? [] : a.render()))
     );
     const handlesRender = $.div.handles(
         ...handles.map((a, i) => $.div.handle($.div.handleInterior(players[i].render(), a.render())))
@@ -391,5 +426,6 @@ const root = document.body;
             alivePlayers <= 1 ? $.div$gameOver('GAME OVER') : ''
         )
     );
+    window.requestAnimationFrame(render);
 })();
 run();
