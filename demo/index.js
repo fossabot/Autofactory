@@ -25,9 +25,9 @@ const BASE_STATS = {
 };
 const UNIT_STAT_BOUNDS = {
     movement: [0.25, 2, 0.25],
-    range: [0, 12, 1],
+    range: [1, 10, 1],
     firepower: [0, 4, 1],
-    health: [0, 10, 1],
+    health: [0, 12, 1],
 };
 const UNIT_PROPERTY_NAMES = {
     // Controller: ['controller', 'id'],
@@ -49,7 +49,7 @@ const board = Array(BOARD_SIZE).fill(null);
 const units = new Set();
 const players = [player(0), player(1, RESOURCE_GAIN_PER_STEP * 2)];
 let alivePlayers = TOTAL_PLAYERS;
-const handles = [TextPlayerHandle(players[0]), EmptyHandle(players[1])];
+const handles = [TextPlayerHandle(players[0]), GeneratorHandle(players[1], [randomUnit(), randomUnit(), randomUnit()])];
 
 /// Utils
 
@@ -89,8 +89,24 @@ function withinRange(unit) {
     return res;
 }
 
+function randomUnit() {
+    const stats = {};
+    for (const [k, v] of Object.entries(UNIT_STAT_BOUNDS)) {
+        stats[k] = Math.floor((Math.random() * (v[1] - v[0] + 1) + v[0]) / v[2]) * v[2];
+    }
+    return stats;
+}
+
 function computePrice(stats) {
-    return stats.movement * 4 + ((Math.pow(stats.range, 1.2) + 1) * stats.firepower) / 2 + stats.health / 3;
+    return stats.movement * 2 + Math.pow(stats.range, 1.2) * (stats.firepower + 1 / 2) * (stats.health / 2 + 1);
+}
+
+function shuffleArray(array) {
+    // Taken from stack overflow answer: https://stackoverflow.com/a/12646864
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 
 function rainbow(numOfSteps, step) {
@@ -168,11 +184,11 @@ function TextPlayerHandle(player, bindings = KEYBINDS) {
         step() {},
         render() {
             return $.div(
-                `Current Price       : ${computePrice(stats).toString().substr(0, 3)}`,
+                `Current Price       : ${computePrice(stats).toString().substr(0, 4)}`,
                 Object.entries(bindings).map((a) =>
                     $.div(
                         `${a[1][1]} - ${a[0]}`.padEnd(20) +
-                            (typeof a[1][0] === 'string' ? ': ' + stats[a[1][0]].toString().substr(0, 3) : '')
+                            (typeof a[1][0] === 'string' ? ': ' + stats[a[1][0]].toString().substr(0, 4) : '')
                     )
                 )
             );
@@ -180,14 +196,6 @@ function TextPlayerHandle(player, bindings = KEYBINDS) {
     };
 }
 function AIHandle(player) {
-    function randomUnit() {
-        const stats = {};
-        for (const [k, v] of Object.entries(UNIT_STAT_BOUNDS)) {
-            stats[k] = Math.floor((Math.random() * (v[1] - v[0] + 1) + v[0]) / v[2]) * v[2];
-        }
-        console.log(stats);
-        return stats;
-    }
     let next = randomUnit();
     return {
         step() {
@@ -198,6 +206,19 @@ function AIHandle(player) {
         },
         render() {
             return $.div(`[-- AI Handle --]`);
+        },
+    };
+}
+function GeneratorHandle(player, units = [randomUnit()]) {
+    const price = units.reduce((a, b) => a + computePrice(b), 0);
+    return {
+        step() {
+            if (price <= player.resources) {
+                units.forEach(player.unit);
+            }
+        },
+        render() {
+            return $.div(`[-- Generator Handle --]`);
         },
     };
 }
@@ -272,7 +293,7 @@ function player(pid, resourceGain = RESOURCE_GAIN_PER_STEP, resources = STARTING
             if (res.entity.destroyed) {
                 return $.div(`Player ${res.id}: ELIMINATED`);
             } else {
-                return $.div(`Player ${res.id}'s Resources: ${res.resources.toString().substr(0, 3)}`);
+                return $.div(`Player ${res.id}'s Resources: ${res.resources.toString().substr(0, 4)}`);
             }
         },
     };
@@ -334,11 +355,8 @@ function unit(player, stats, _location = player.spawn) {
                 moved = true;
                 phases.push(() => {
                     if (Math.abs(ds) > unit.stats.movement) throw new Error('Cannot move more than movement stat.');
-                    //console.log(ds);
                     const part = unit.partial + ds;
-                    //console.log(part);
                     const delta = Math.sign(part) * Math.floor(Math.abs(part));
-                    console.log(delta);
                     const pos = unit.position + delta;
                     board[unit.position] = null;
                     const actual = bump(minmax(pos, 0, BOARD_SIZE - 1), ds);
@@ -361,7 +379,7 @@ function unit(player, stats, _location = player.spawn) {
             for (const x of Object.values(UNIT_PROPERTY_NAMES)) {
                 const d = getDeep(unit, x);
                 text += `${
-                    typeof d === 'number' ? d.toString().replace(/^0/, '').substr(0, UNIT_PAD).padEnd(UNIT_PAD) : d
+                    typeof d === 'number' ? d.toString().replace(/^0\./, '.').substr(0, UNIT_PAD).padEnd(UNIT_PAD) : d
                 }\n`;
             }
             return $.div.unit(
@@ -395,6 +413,7 @@ function run() {
     handles.forEach((a) => a.step());
     const phaseSteps = [];
     const allSteps = Array.from(units).map((a) => a.step());
+    shuffleArray(allSteps);
     do {
         phaseSteps.forEach((a) => a());
         phaseSteps.length = 0;
