@@ -12,10 +12,14 @@
 <a href="https://github.com/iMplode-nZ/Autofactory/blob/main/LICENSE.md">
     <img src="https://img.shields.io/badge/license-GPL--3.0-brightgreen">
 </a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FiMplode-nZ%2FAutofactory?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FiMplode-nZ%2FAutofactory.svg?type=shield"/></a>
 </p>
 <p align="center">
     <strong> <a href="https://youxplode.com/md.html?Autofactory">About</a> </strong>
 </p>
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FiMplode-nZ%2FAutofactory.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FiMplode-nZ%2FAutofactory?ref=badge_large)
 
 ## Compiling
 
